@@ -1,8 +1,6 @@
 #include <iostream>
 #include <SFML/Graphics.hpp>
-using namespace std::cout;
-using namespace std::endl;
-using namespace std::cin;
+using namespace std;
   
 class game_window{
   public:
@@ -43,7 +41,18 @@ int main(){
     (sf::VideoMode(g_window.width, g_window.height),g_window.title)
   ;
   
+  sf::Event window_event;
   
+  while(window.isOpen()){
+    while (window.pollEvent(window_event)){
+      if (window_event.type == sf::Event::Closed) window.close();
+    }
+    
+    window.clear();
+    //window.draw(shape);
+    window.display();
+  
+  }
   
   
   return 0;
