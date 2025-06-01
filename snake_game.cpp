@@ -2,8 +2,11 @@
 #include <SFML/Graphics.hpp>
 using namespace std;
 
+// Forward Declarations
 class snake;
 class snake_part;
+
+
 class game_window{
   public:
  
@@ -59,28 +62,54 @@ void game_window::draw_snake(snake*& sn){
 }
 
 void snake::transform(int f_max_size, int f_size){ // Will resize the snake_part array
-  int temp_max_size = max_size;
+  int temp_max_size = snake::max_size; // Backup for further use of resizing
+  
+  max_size = f_max_size; // Override with provided values
+  size = f_size;
+  
+  // If part[] array is empty or uninitialized, no need of backing it up
+  if (part == nullptr){ 
+    part = new snake_part[max_size];
+    return; //exits method
+  }
+  //====================================================================
   
   
   //creating temp array of same size as part
   snake_part* temp_part = new snake_part[temp_max_size];
  
-  max_size = f_max_size;
-  size = f_size;
-        
-  delete[] part; // Delete old part array
+  // Deep Copying object of snake_part* part[] array into temp_part[]
   
-  part = new snake_part[max_size]; // New part array with desired size
-  
-
-  
-  
-  // Deep Copying object of snake_part* part[] array
-  
-  snake_part::deep_copy(temp_part, part, temp_max_size);
-  delete[] temp_part;
+      // Technically a backup of part[] array
+  snake_part::deep_copy(part, temp_part, temp_max_size);
   
   // ===============================================      
+  
+  // After taking backup of part[] array, we will delete it
+  // to itialize a new part[] array with a overridden size
+  
+  delete[] part;
+  part = new snake_part[max_size];// Initialized with new max_size
+
+  //==============================================================
+  
+  
+  
+  // As we have resized the part[] array.. We also need to give it
+  // back its data that we took the backup of
+  
+  snake_part::deep_copy(temp_part, part, temp_max_size); // It will copy till max size of temp_part
+
+  //==============================================================
+  
+  
+  // So now our part array is completely resized and transformed... 
+  // so we ned to delete the backup .. freeing memory
+  
+  delete[] temp_part;
+  
+  //===============================================================
+  
 
 }
 
