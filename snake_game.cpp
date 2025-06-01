@@ -138,6 +138,26 @@ int main(){
       if (window_event.type == sf::Event::Closed) window.close();
     }
     
+    if (window_event.type == sf::Event::KeyPressed){
+      
+      if (window_event.key.code == sf::Keyboard::Down){
+        cout<<endl<<"Key pressed: Down"<<endl;
+      }
+      
+      if (window_event.key.code == sf::Keyboard::Up){
+        cout<<endl<<"Key pressed: Up"<<endl;
+      }
+      
+      if (window_event.key.code == sf::Keyboard::Left){
+        cout<<endl<<"Key pressed: Left"<<endl;
+      }
+      
+      if (window_event.key.code == sf::Keyboard::Right){
+        cout<<endl<<"Key pressed: Right"<<endl;
+      }
+    }
+    
+    
     window.clear();
     window.draw(rect);
     window.display();
