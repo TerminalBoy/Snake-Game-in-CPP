@@ -4,8 +4,8 @@ using namespace std;
 
 // Forward Declarations
 class snake;
-class snake_part;
 
+class snake_part;
 
 class game_window{
   public:
@@ -26,11 +26,22 @@ class snake { // Will hold Snake information
   public:
 
     int size;
-    int max_size;
+    
+    bool is_left = false;
+    bool is_right = true;
+    bool is_up = false;
+    bool is_down = false;
+    
     snake_part* part = nullptr; // Initially is a null pointer, will be set later
     
-    void transform(int, int);
+    void transform(int);
     
+    void draw_snake(sf::RenderWindow& f_window);
+    
+    ~snake();
+    
+  protected:
+    int max_size;
 };
 
 class snake_part{
@@ -39,6 +50,9 @@ class snake_part{
     int y;
     int followup_x;  //Coordinates of previous blocks
     int followup_y;  
+    
+    static sf::RectangleShape shape;
+    sf::Vector2f position;
     
     static void deep_copy(snake_part*& copy_from, snake_part*& copy_to, int copy_till){
       for (int i = 0; i < copy_till; i++){
@@ -61,11 +75,11 @@ void game_window::draw_snake(snake*& sn){
   
 }
 
-void snake::transform(int f_max_size, int f_size){ // Will resize the snake_part array
+void snake::transform(int f_max_size){ // Will resize the snake_part array
   int temp_max_size = snake::max_size; // Backup for further use of resizing
   
   max_size = f_max_size; // Override with provided values
-  size = f_size;
+  
   
   // If part[] array is empty or uninitialized, no need of backing it up
   if (part == nullptr){ 
@@ -113,8 +127,24 @@ void snake::transform(int f_max_size, int f_size){ // Will resize the snake_part
 
 }
 
+void snake::draw_snake(sf::RenderWindow& f_window){
+  for (int i = 0; i < max_size; i++){
+    snake_part::shape.setPosition(part[i].position);
+    f_window.draw(snake_part::shape);
+  }
+}
 
+snake::~snake(){
+  delete[] part;
+}
 // ============================
+
+
+// Global Declarations
+
+sf::RectangleShape snake_part::shape;
+
+//=============================
 
 
 int main(){
@@ -122,15 +152,21 @@ int main(){
   g_window.width = 700;
   g_window.height = 500;
   g_window.title = "Nigga Snaaakeeee";
-  
+
+  snake snk;
+  snk.size = 10;
+  snk.transform(11); // creates snake with its parts
+// #region abcd
   sf::RenderWindow
     window 
     (sf::VideoMode(g_window.width, g_window.height),g_window.title)
   ;
-  
+// #endregion
   sf::Event window_event;
   
   sf::RectangleShape rect(sf::Vector2f(200.f, 200.f));
+  
+  sf::Vector2f pos;
   rect.setFillColor(sf::Color::Green);
   
   while(window.isOpen()){
@@ -140,24 +176,28 @@ int main(){
     
     if (window_event.type == sf::Event::KeyPressed){
       
-      if (window_event.key.code == sf::Keyboard::Down){
+      if (window_event.key.code == sf::Keyboard::Down && window_event.key.code != 0){
         cout<<endl<<"Key pressed: Down"<<endl;
+        pos.y+= 1.f;
       }
       
       if (window_event.key.code == sf::Keyboard::Up){
         cout<<endl<<"Key pressed: Up"<<endl;
+        pos.y-= 1.f;
       }
       
       if (window_event.key.code == sf::Keyboard::Left){
         cout<<endl<<"Key pressed: Left"<<endl;
+        pos.x-= 1.f;
       }
       
       if (window_event.key.code == sf::Keyboard::Right){
         cout<<endl<<"Key pressed: Right"<<endl;
+        pos.x+= 1.f;
       }
     }
     
-    
+    rect.setPosition(pos);
     window.clear();
     window.draw(rect);
     window.display();
