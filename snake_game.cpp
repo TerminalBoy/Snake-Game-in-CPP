@@ -158,10 +158,10 @@ int main(){
   g_window.title = "Nigga Snaaakeeee";
 
   snake snk;
-  snk.size = 5;
-  snk.transform(10); // creates snake with its parts  
+  snk.size = 20;
+  snk.transform(50); // creates snake with its parts  
   snake_part::shape = sf::RectangleShape(sf::Vector2f(20.f, 20.f));
-  snake_part::shape.setFillColor(sf::Color::Blue);
+  snake_part::shape.setFillColor(sf::Color::Green);
   snk.is_right=false;
 
 
@@ -192,7 +192,7 @@ int main(){
   
   sf::Clock clock;
   
-  float snake_speed = 1.0f;
+  float snake_speed = 20.0f;
   float move_interval= 1.0f / snake_speed;
   float move_timer = 0.0f;
   
@@ -247,25 +247,25 @@ int main(){
       move_timer -= move_interval;
       
       if (snk.is_down){
-        snk.part[0].position.y += 1.f;
+        snk.part[0].position.y += 20.f;
         for (int i = 1; i <snk.size; i++){
           snk.part[i].position = snk.part[i - 1].followup;
         }
       }
       else if (snk.is_up){
-        snk.part[0].position.y -= 1.f;
+        snk.part[0].position.y -= 20.f;
         for (int i = 1; i <snk.size; i++){
           snk.part[i].position = snk.part[i - 1].followup;
         }
       }
       else if (snk.is_left){
-        snk.part[0].position.x -= 1.f;
+        snk.part[0].position.x -= 20.f;
         for (int i = 1; i <snk.size; i++){
           snk.part[i].position = snk.part[i - 1].followup;
         }
       }
       else if (snk.is_right){
-        snk.part[0].position.x += 1.f;
+        snk.part[0].position.x += 20.f;
         for (int i = 1; i <snk.size; i++){
           snk.part[i].position = snk.part[i - 1].followup;
         }
