@@ -158,24 +158,26 @@ int main(){
   g_window.title = "Nigga Snaaakeeee";
 
   snake snk;
-  snk.size = 2;
-  snk.transform(5); // creates snake with its parts
-  snk.part[0].position.x = 20 * (snk.size - 1);
-  snk.part[0].position.y = 0.f;
-  
+  snk.size = 5;
+  snk.transform(10); // creates snake with its parts  
   snake_part::shape = sf::RectangleShape(sf::Vector2f(20.f, 20.f));
   snake_part::shape.setFillColor(sf::Color::Blue);
+  snk.is_right=false;
 
 
-  for (int i = 1; i < snk.size; i++){
-    snk.part[i].position.x = (20 * snk.size - i);
-  }
-  for (int i = 1; i < snk.size; i++){
-    snk.part[i].followup.x = snk.part[i - 1].position.x;
-    
-    snk.part[i].position.y = 0;
+  for (int i = 0; i < snk.size; i++){
+    snk.part[i].position.x = 20 * (snk.size - i);
+    snk.part[i].position.y = 0.f;
   }
   
+  for (int i = 1; i < snk.size; i++){
+    snk.part[i].followup = snk.part[i].position;
+  }
+  
+  
+  
+  
+
   sf::RenderWindow
     window 
     (sf::VideoMode(g_window.width, g_window.height),g_window.title)
@@ -247,34 +249,33 @@ int main(){
       if (snk.is_down){
         snk.part[0].position.y += 1.f;
         for (int i = 1; i <snk.size; i++){
-          snk.part[i].followup.y = snk.part[i-1].position.y;
-          snk.part[i].followup.x = snk.part[i-1].position.x;
+          snk.part[i].position = snk.part[i - 1].followup;
         }
       }
       else if (snk.is_up){
         snk.part[0].position.y -= 1.f;
         for (int i = 1; i <snk.size; i++){
-          snk.part[i].followup.y = snk.part[i-1].position.y;
-          snk.part[i].followup.x = snk.part[i-1].position.x;
+          snk.part[i].position = snk.part[i - 1].followup;
         }
       }
       else if (snk.is_left){
         snk.part[0].position.x -= 1.f;
         for (int i = 1; i <snk.size; i++){
-          snk.part[i].followup.y = snk.part[i-1].position.y;
-          snk.part[i].followup.x = snk.part[i-1].position.x;
+          snk.part[i].position = snk.part[i - 1].followup;
         }
       }
       else if (snk.is_right){
         snk.part[0].position.x += 1.f;
         for (int i = 1; i <snk.size; i++){
-          snk.part[i].followup.y = snk.part[i-1].position.y;
-          snk.part[i].followup.x = snk.part[i-1].position.x;
+          snk.part[i].position = snk.part[i - 1].followup;
         }
       }
     }
-    
-    
+    // Update Followup
+    for (int i = 0; i <snk.size; i++){
+      snk.part[i].followup = snk.part[i].position;
+    }
+    //==================
     cout<<"[0].x = "<<snk.part[0].position.x<<"  |  "<<"[1].x = "<<snk.part[1].position.x<<endl;
     cout<<"[0].y = "<<snk.part[0].position.y<<"  |  "<<"[1].y = "<<snk.part[1].position.y<<endl;
     //rect.setPosition(pos);
