@@ -46,22 +46,26 @@ class snake { // Will hold Snake information
 
 class snake_part{
   public:
-    int x; // Coordinates of current blocks
-    int y;
-    int followup_x;  //Coordinates of previous blocks
-    int followup_y;  
+    //int x = 0; // Coordinates of current blocks
+    //int y = 0;
+    
+    
+    sf::Vector2f position;
+    sf::Vector2f followup;  //Coordinates of previous blocks
+    
     
     static sf::RectangleShape shape;
-    sf::Vector2f position;
     
     static void deep_copy(snake_part*& copy_from, snake_part*& copy_to, int copy_till){
       for (int i = 0; i < copy_till; i++){
         
-        copy_to[i].x = copy_from[i].x;
-        copy_to[i].y = copy_from[i].y;
+        //copy_to[i].x = copy_from[i].x;
+        //copy_to[i].y = copy_from[i].y;
         
-        copy_to[i].followup_x = copy_from[i].followup_x;
-        copy_to[i].followup_y = copy_from[i].followup_y;
+        copy_to[i].position = copy_from[i].position;
+        
+        copy_to[i].followup.x = copy_from[i].followup.x;
+        copy_to[i].followup.y = copy_from[i].followup.y;
       
       }
       
@@ -155,19 +159,28 @@ int main(){
 
   snake snk;
   snk.size = 2;
-  snk.transform(11); // creates snake with its parts
-  snk.part[0].position.x = 200.f;
-  snk.part[0].position.y = 1.f;
+  snk.transform(5); // creates snake with its parts
+  snk.part[0].position.x = 20 * (snk.size - 1);
+  snk.part[0].position.y = 0.f;
   
   snake_part::shape = sf::RectangleShape(sf::Vector2f(20.f, 20.f));
   snake_part::shape.setFillColor(sf::Color::Blue);
 
 
+  for (int i = 1; i < snk.size; i++){
+    snk.part[i].position.x = (20 * snk.size - i);
+  }
+  for (int i = 1; i < snk.size; i++){
+    snk.part[i].followup.x = snk.part[i - 1].position.x;
+    
+    snk.part[i].position.y = 0;
+  }
+  
   sf::RenderWindow
     window 
     (sf::VideoMode(g_window.width, g_window.height),g_window.title)
   ;
-  //window.setFramerateLimit(30);
+  //window.setFramerateLimit(60);
   sf::Event window_event;
   
   sf::RectangleShape rect(sf::Vector2f(200.f, 200.f));
@@ -177,7 +190,7 @@ int main(){
   
   sf::Clock clock;
   
-  float snake_speed = 1000.0f;
+  float snake_speed = 1.0f;
   float move_interval= 1.0f / snake_speed;
   float move_timer = 0.0f;
   
@@ -228,25 +241,42 @@ int main(){
     }
     
     if (move_timer >= move_interval){
+      cout<<endl<<move_timer<<endl;
       move_timer -= move_interval;
       
       if (snk.is_down){
         snk.part[0].position.y += 1.f;
         for (int i = 1; i <snk.size; i++){
-          snk.part[i].followup_y = snk.part[i-1].y;
+          snk.part[i].followup.y = snk.part[i-1].position.y;
+          snk.part[i].followup.x = snk.part[i-1].position.x;
         }
       }
       else if (snk.is_up){
         snk.part[0].position.y -= 1.f;
+        for (int i = 1; i <snk.size; i++){
+          snk.part[i].followup.y = snk.part[i-1].position.y;
+          snk.part[i].followup.x = snk.part[i-1].position.x;
+        }
       }
       else if (snk.is_left){
         snk.part[0].position.x -= 1.f;
+        for (int i = 1; i <snk.size; i++){
+          snk.part[i].followup.y = snk.part[i-1].position.y;
+          snk.part[i].followup.x = snk.part[i-1].position.x;
+        }
       }
       else if (snk.is_right){
         snk.part[0].position.x += 1.f;
+        for (int i = 1; i <snk.size; i++){
+          snk.part[i].followup.y = snk.part[i-1].position.y;
+          snk.part[i].followup.x = snk.part[i-1].position.x;
+        }
       }
     }
     
+    
+    cout<<"[0].x = "<<snk.part[0].position.x<<"  |  "<<"[1].x = "<<snk.part[1].position.x<<endl;
+    cout<<"[0].y = "<<snk.part[0].position.y<<"  |  "<<"[1].y = "<<snk.part[1].position.y<<endl;
     //rect.setPosition(pos);
     window.clear();
     snk.draw_snake(window);
