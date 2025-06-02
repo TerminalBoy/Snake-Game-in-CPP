@@ -128,7 +128,7 @@ void snake::transform(int f_max_size){ // Will resize the snake_part array
 }
 
 void snake::draw_snake(sf::RenderWindow& f_window){
-  for (int i = 0; i < max_size; i++){
+  for (int i = 0; i < size; i++){
     snake_part::shape.setPosition(part[i].position);
     f_window.draw(snake_part::shape);
   }
@@ -154,14 +154,20 @@ int main(){
   g_window.title = "Nigga Snaaakeeee";
 
   snake snk;
-  snk.size = 10;
+  snk.size = 2;
   snk.transform(11); // creates snake with its parts
-// #region abcd
+  snk.part[0].position.x = 200.f;
+  snk.part[0].position.y = 1.f;
+  
+  snake_part::shape = sf::RectangleShape(sf::Vector2f(20.f, 20.f));
+  snake_part::shape.setFillColor(sf::Color::Blue);
+
+
   sf::RenderWindow
     window 
     (sf::VideoMode(g_window.width, g_window.height),g_window.title)
   ;
-// #endregion
+  //window.setFramerateLimit(30);
   sf::Event window_event;
   
   sf::RectangleShape rect(sf::Vector2f(200.f, 200.f));
@@ -169,37 +175,82 @@ int main(){
   sf::Vector2f pos;
   rect.setFillColor(sf::Color::Green);
   
+  sf::Clock clock;
+  
+  float snake_speed = 1000.0f;
+  float move_interval= 1.0f / snake_speed;
+  float move_timer = 0.0f;
+  
   while(window.isOpen()){
+    
     while (window.pollEvent(window_event)){
       if (window_event.type == sf::Event::Closed) window.close();
     }
+    
+    sf::Time delta_time = clock.restart();
+    move_timer += delta_time.asSeconds();
+    
+  
     
     if (window_event.type == sf::Event::KeyPressed){
       
       if (window_event.key.code == sf::Keyboard::Down && window_event.key.code != 0){
         cout<<endl<<"Key pressed: Down"<<endl;
-        pos.y+= 1.f;
+        snk.is_down = true;
+        snk.is_up = false;
+        snk.is_left = false;
+        snk.is_right = false;
       }
       
       if (window_event.key.code == sf::Keyboard::Up){
         cout<<endl<<"Key pressed: Up"<<endl;
-        pos.y-= 1.f;
+        snk.is_down = false;
+        snk.is_up = true;
+        snk.is_left = false;
+        snk.is_right = false;
       }
       
       if (window_event.key.code == sf::Keyboard::Left){
         cout<<endl<<"Key pressed: Left"<<endl;
-        pos.x-= 1.f;
+        snk.is_down = false;
+        snk.is_up = false;
+        snk.is_left = true;
+        snk.is_right = false;
       }
       
       if (window_event.key.code == sf::Keyboard::Right){
         cout<<endl<<"Key pressed: Right"<<endl;
-        pos.x+= 1.f;
+        snk.is_down = false;
+        snk.is_up = false;
+        snk.is_left = false;
+        snk.is_right = true;
       }
     }
     
-    rect.setPosition(pos);
+    if (move_timer >= move_interval){
+      move_timer -= move_interval;
+      
+      if (snk.is_down){
+        snk.part[0].position.y += 1.f;
+        for (int i = 1; i <snk.size; i++){
+          snk.part[i].followup_y = snk.part[i-1].y;
+        }
+      }
+      else if (snk.is_up){
+        snk.part[0].position.y -= 1.f;
+      }
+      else if (snk.is_left){
+        snk.part[0].position.x -= 1.f;
+      }
+      else if (snk.is_right){
+        snk.part[0].position.x += 1.f;
+      }
+    }
+    
+    //rect.setPosition(pos);
     window.clear();
-    window.draw(rect);
+    snk.draw_snake(window);
+    //window.draw(rect);
     window.display();
   
   }
