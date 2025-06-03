@@ -160,8 +160,8 @@ int main(){
   g_window.title = "Nigga Snaaakeeee";
 
   snake snk;
-  snk.size = 20;
-  snk.transform(50); // creates snake with its parts  
+  snk.size = 5;
+  snk.transform(5); // creates snake with its parts  
   snake_part::shape = sf::RectangleShape(sf::Vector2f(20.f, 20.f));
   snake_part::shape.setFillColor(sf::Color::Green);
   snk.is_right=false;
@@ -245,11 +245,11 @@ int main(){
       cout<<endl<<move_timer<<endl;
       move_timer -= move_interval;
     
-    if (snk.part[0].position.x > g_window.max_x){
+    if (snk.part[0].position.x > g_window.max_x - 20){
       snk.part[0].position.x = 0;
     } else if (snk.part[0].position.x < 0){
       snk.part[0].position.x = g_window.max_x - 20;
-    } else if (snk.part[0].position.y > g_window.max_y){
+    } else if (snk.part[0].position.y > g_window.max_y - 20){
       snk.part[0].position.y = 0;
     } else if (snk.part[0].position.y < 0){
       snk.part[0].position.y = g_window.max_y - 20;
