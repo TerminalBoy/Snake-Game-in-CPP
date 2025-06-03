@@ -155,6 +155,8 @@ int main(){
   game_window g_window;
   g_window.width = 700;
   g_window.height = 500;
+  g_window.max_x = g_window.width - 1;
+  g_window.max_y = g_window.height - 1;
   g_window.title = "Nigga Snaaakeeee";
 
   snake snk;
@@ -170,9 +172,6 @@ int main(){
     snk.part[i].position.y = 0.f;
   }
   
-  for (int i = 1; i < snk.size; i++){
-    snk.part[i].followup = snk.part[i].position;
-  }
   
   
   
@@ -209,7 +208,7 @@ int main(){
     
     if (window_event.type == sf::Event::KeyPressed){
       
-      if (window_event.key.code == sf::Keyboard::Down && window_event.key.code != 0){
+      if (window_event.key.code == sf::Keyboard::Down && snk.is_up == false){
         cout<<endl<<"Key pressed: Down"<<endl;
         snk.is_down = true;
         snk.is_up = false;
@@ -217,7 +216,7 @@ int main(){
         snk.is_right = false;
       }
       
-      if (window_event.key.code == sf::Keyboard::Up){
+      if (window_event.key.code == sf::Keyboard::Up && snk.is_down == false){
         cout<<endl<<"Key pressed: Up"<<endl;
         snk.is_down = false;
         snk.is_up = true;
@@ -225,7 +224,7 @@ int main(){
         snk.is_right = false;
       }
       
-      if (window_event.key.code == sf::Keyboard::Left){
+      if (window_event.key.code == sf::Keyboard::Left && snk.is_right == false){
         cout<<endl<<"Key pressed: Left"<<endl;
         snk.is_down = false;
         snk.is_up = false;
@@ -233,7 +232,7 @@ int main(){
         snk.is_right = false;
       }
       
-      if (window_event.key.code == sf::Keyboard::Right){
+      if (window_event.key.code == sf::Keyboard::Right && snk.is_left == false){
         cout<<endl<<"Key pressed: Right"<<endl;
         snk.is_down = false;
         snk.is_up = false;
@@ -245,6 +244,21 @@ int main(){
     if (move_timer >= move_interval){
       cout<<endl<<move_timer<<endl;
       move_timer -= move_interval;
+    
+    if (snk.part[0].position.x > g_window.max_x){
+      snk.part[0].position.x = 0;
+    } else if (snk.part[0].position.x < 0){
+      snk.part[0].position.x = g_window.max_x - 20;
+    } else if (snk.part[0].position.y > g_window.max_y){
+      snk.part[0].position.y = 0;
+    } else if (snk.part[0].position.y < 0){
+      snk.part[0].position.y = g_window.max_y - 20;
+    }
+    
+    // Update Followup
+    for (int i = 0; i <snk.size; i++){
+      snk.part[i].followup = snk.part[i].position;
+    }
       
       if (snk.is_down){
         snk.part[0].position.y += 20.f;
@@ -271,10 +285,7 @@ int main(){
         }
       }
     }
-    // Update Followup
-    for (int i = 0; i <snk.size; i++){
-      snk.part[i].followup = snk.part[i].position;
-    }
+    
     //==================
     cout<<"[0].x = "<<snk.part[0].position.x<<"  |  "<<"[1].x = "<<snk.part[1].position.x<<endl;
     cout<<"[0].y = "<<snk.part[0].position.y<<"  |  "<<"[1].y = "<<snk.part[1].position.y<<endl;
@@ -283,6 +294,8 @@ int main(){
     snk.draw_snake(window);
     //window.draw(rect);
     window.display();
+    
+    
   
   }
   return 0;
