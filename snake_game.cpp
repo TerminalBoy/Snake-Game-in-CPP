@@ -164,10 +164,10 @@ int main(){
   g_window.title = "Nigga Snaaakeeee";
 
   snake snk;
-  snk.size = 49;
-  snk.transform(50); // creates snake with its parts  
+  snk.size = 5;
+  snk.transform(200); // creates snake with its parts  
   snake_part::shape = sf::RectangleShape(sf::Vector2f(20.f, 20.f));
-  snake_part::shape.setFillColor(sf::Color::Green);
+  snake_part::shape.setFillColor(sf::Color::White);
   snk.is_right=false;
 
 
@@ -236,16 +236,18 @@ int main(){
         snk.is_up = false;
         snk.is_left = false;
         snk.is_right = true;
-      } else if (window_event.key.code == sf::Keyboard::LShift){
-        cout<<endl<<"Tab Pressed"<<endl;
-        snk.size += 1;
-      }
+      } 
     }
+    
     
     if (move_timer >= move_interval){
       cout<<endl<<move_timer<<endl;
       move_timer -= move_interval;
-    
+      
+      if (window_event.type == sf::Event::KeyPressed){
+       if (window_event.key.code == sf::Keyboard::LShift) snk.size += 1;
+      }
+      
       // Update Followup
       for (int i = 0; i <snk.size; i++){
         snk.part[i].followup = snk.part[i].position;
