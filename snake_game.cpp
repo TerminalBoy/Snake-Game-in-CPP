@@ -160,15 +160,15 @@ int main(){
   g_window.title = "Nigga Snaaakeeee";
 
   snake snk;
-  snk.size = 5;
-  snk.transform(5); // creates snake with its parts  
+  snk.size = 20;
+  snk.transform(40); // creates snake with its parts  
   snake_part::shape = sf::RectangleShape(sf::Vector2f(20.f, 20.f));
   snake_part::shape.setFillColor(sf::Color::Green);
   snk.is_right=false;
 
 
   for (int i = 0; i < snk.size; i++){
-    snk.part[i].position.x = 20 * (snk.size - i);
+    snk.part[i].position.x = (20 * (snk.size - i)) - 1;
     snk.part[i].position.y = 0.f;
   }
   
@@ -191,7 +191,7 @@ int main(){
   
   sf::Clock clock;
   
-  float snake_speed = 20.0f;
+  float snake_speed = 30.0f;
   float move_interval= 1.0f / snake_speed;
   float move_timer = 0.0f;
   
@@ -245,48 +245,60 @@ int main(){
       cout<<endl<<move_timer<<endl;
       move_timer -= move_interval;
     
-    if (snk.part[0].position.x > g_window.max_x - 20){
-      snk.part[0].position.x = 0;
-    } else if (snk.part[0].position.x < 0){
-      snk.part[0].position.x = g_window.max_x - 20;
-    } else if (snk.part[0].position.y > g_window.max_y - 20){
-      snk.part[0].position.y = 0;
-    } else if (snk.part[0].position.y < 0){
-      snk.part[0].position.y = g_window.max_y - 20;
-    }
-    
-    // Update Followup
-    for (int i = 0; i <snk.size; i++){
-      snk.part[i].followup = snk.part[i].position;
-    }
+      // Update Followup
+      for (int i = 0; i <snk.size; i++){
+        snk.part[i].followup = snk.part[i].position;
+      }    
+      //==================
+
       
       if (snk.is_down){
         snk.part[0].position.y += 20.f;
+        
+        if (snk.part[0].position.y >= g_window.max_y)
+        {snk.part[0].position.y = 0;}
+        
         for (int i = 1; i <snk.size; i++){
           snk.part[i].position = snk.part[i - 1].followup;
         }
       }
+      
       else if (snk.is_up){
         snk.part[0].position.y -= 20.f;
+        
+        if (snk.part[0].position.y <= -19)
+        {snk.part[0].position.y = g_window.max_y - 19;} 
+        
         for (int i = 1; i <snk.size; i++){
           snk.part[i].position = snk.part[i - 1].followup;
         }
       }
+      
       else if (snk.is_left){
         snk.part[0].position.x -= 20.f;
+        
+        if (snk.part[0].position.x <= -19)
+        {snk.part[0].position.x = g_window.max_x - 19;}
+                
         for (int i = 1; i <snk.size; i++){
           snk.part[i].position = snk.part[i - 1].followup;
         }
       }
+      
       else if (snk.is_right){
         snk.part[0].position.x += 20.f;
+        
+        if (snk.part[0].position.x >= g_window.max_x) 
+        {snk.part[0].position.x = 0;}
+        
         for (int i = 1; i <snk.size; i++){
           snk.part[i].position = snk.part[i - 1].followup;
         }
       }
     }
     
-    //==================
+    
+    
     cout<<"[0].x = "<<snk.part[0].position.x<<"  |  "<<"[1].x = "<<snk.part[1].position.x<<endl;
     cout<<"[0].y = "<<snk.part[0].position.y<<"  |  "<<"[1].y = "<<snk.part[1].position.y<<endl;
     //rect.setPosition(pos);
