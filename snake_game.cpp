@@ -38,6 +38,10 @@ class snake { // Will hold Snake information
     
     void draw_snake(sf::RenderWindow& f_window);
     
+    inline void stop() {
+    is_down = is_left = is_right = is_up = false;  
+    }
+    
     ~snake();
     
   protected:
@@ -160,8 +164,8 @@ int main(){
   g_window.title = "Nigga Snaaakeeee";
 
   snake snk;
-  snk.size = 20;
-  snk.transform(40); // creates snake with its parts  
+  snk.size = 49;
+  snk.transform(50); // creates snake with its parts  
   snake_part::shape = sf::RectangleShape(sf::Vector2f(20.f, 20.f));
   snake_part::shape.setFillColor(sf::Color::Green);
   snk.is_right=false;
@@ -191,7 +195,7 @@ int main(){
   
   sf::Clock clock;
   
-  float snake_speed = 30.0f;
+  float snake_speed = 5.0f;
   float move_interval= 1.0f / snake_speed;
   float move_timer = 0.0f;
   
@@ -214,30 +218,27 @@ int main(){
         snk.is_up = false;
         snk.is_left = false;
         snk.is_right = false;
-      }
-      
-      if (window_event.key.code == sf::Keyboard::Up && snk.is_down == false){
+      } else if (window_event.key.code == sf::Keyboard::Up && snk.is_down == false){
         cout<<endl<<"Key pressed: Up"<<endl;
         snk.is_down = false;
         snk.is_up = true;
         snk.is_left = false;
         snk.is_right = false;
-      }
-      
-      if (window_event.key.code == sf::Keyboard::Left && snk.is_right == false){
+      } else if (window_event.key.code == sf::Keyboard::Left && snk.is_right == false){
         cout<<endl<<"Key pressed: Left"<<endl;
         snk.is_down = false;
         snk.is_up = false;
         snk.is_left = true;
         snk.is_right = false;
-      }
-      
-      if (window_event.key.code == sf::Keyboard::Right && snk.is_left == false){
+      } else if (window_event.key.code == sf::Keyboard::Right && snk.is_left == false){
         cout<<endl<<"Key pressed: Right"<<endl;
         snk.is_down = false;
         snk.is_up = false;
         snk.is_left = false;
         snk.is_right = true;
+      } else if (window_event.key.code == sf::Keyboard::LShift){
+        cout<<endl<<"Tab Pressed"<<endl;
+        snk.size += 1;
       }
     }
     
@@ -307,6 +308,12 @@ int main(){
     //window.draw(rect);
     window.display();
     
+    for (int i = 4; i < snk.size; i++){
+      if (snk.part[0].position == snk.part[i].position){
+        cout<<endl <<"GAME OVER" <<endl;
+        snk.stop();
+      }
+    }
     
   
   }
