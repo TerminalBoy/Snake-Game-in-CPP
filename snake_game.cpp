@@ -19,7 +19,7 @@ class game_window{
     
     game_window(){}
     
-    void draw_snake(snake*&);
+    
 };
   
 class snake { // Will hold Snake information  
@@ -79,10 +79,6 @@ class snake_part{
 
 // Out of Class, Member function declaritions - To resolve Circular Dependencies
 
-void game_window::draw_snake(snake*& sn){
-  
-}
-
 void snake::transform(int f_max_size){ // Will resize the snake_part array
   int temp_max_size = snake::max_size; // Backup for further use of resizing
   
@@ -136,7 +132,15 @@ void snake::transform(int f_max_size){ // Will resize the snake_part array
 }
 
 void snake::draw_snake(sf::RenderWindow& f_window){
-  for (int i = 0; i < size; i++){
+  sf::Color temp = snake_part::shape.getFillColor();
+  
+  snake_part::shape.setPosition(part[0].position);
+  snake_part::shape.setFillColor(sf::Color::Black);
+  f_window.draw(snake_part::shape);
+  
+  snake_part::shape.setFillColor(temp);
+  
+  for (int i = 1; i < size; i++){
     snake_part::shape.setPosition(part[i].position);
     f_window.draw(snake_part::shape);
   }
@@ -145,6 +149,7 @@ void snake::draw_snake(sf::RenderWindow& f_window){
 snake::~snake(){
   delete[] part;
 }
+
 // ============================
 
 
@@ -161,13 +166,18 @@ int main(){
   g_window.height = 500;
   g_window.max_x = g_window.width - 1;
   g_window.max_y = g_window.height - 1;
-  g_window.title = "Nigga Snaaakeeee";
+  g_window.title = "bc snake";
 
   snake snk;
   snk.size = 5;
   snk.transform(200); // creates snake with its parts  
+  
   snake_part::shape = sf::RectangleShape(sf::Vector2f(20.f, 20.f));
-  snake_part::shape.setFillColor(sf::Color::White);
+  snake_part::shape.setFillColor(sf::Color(150, 150, 150));
+  snake_part::shape.setOutlineColor(sf::Color::White);
+  
+  snake_part::shape.setOutlineThickness(1.f); 
+  
   snk.is_right=false;
 
 
@@ -175,11 +185,6 @@ int main(){
     snk.part[i].position.x = (20 * (snk.size - i)) - 1;
     snk.part[i].position.y = 0.f;
   }
-  
-  
-  
-  
-  
 
   sf::RenderWindow
     window 
@@ -236,7 +241,8 @@ int main(){
         snk.is_up = false;
         snk.is_left = false;
         snk.is_right = true;
-      } 
+      } //else if (window_event.key.code == sf::Keyboard::LShift) 
+        //{snk.size += 1;} 
     }
     
     
@@ -245,7 +251,9 @@ int main(){
       move_timer -= move_interval;
       
       if (window_event.type == sf::Event::KeyPressed){
-       if (window_event.key.code == sf::Keyboard::LShift) snk.size += 1;
+        if (window_event.key.code == sf::Keyboard::LShift || 
+            window_event.key.code == sf::Keyboard::RShift) 
+        {snk.size += 1;}
       }
       
       // Update Followup
@@ -300,20 +308,27 @@ int main(){
       }
     }
     
-    
-    
     cout<<"[0].x = "<<snk.part[0].position.x<<"  |  "<<"[1].x = "<<snk.part[1].position.x<<endl;
     cout<<"[0].y = "<<snk.part[0].position.y<<"  |  "<<"[1].y = "<<snk.part[1].position.y<<endl;
     //rect.setPosition(pos);
-    window.clear();
+    window.clear(sf::Color::White);
     snk.draw_snake(window);
     //window.draw(rect);
     window.display();
     
-    for (int i = 4; i < snk.size; i++){
+    for (int i = 4; i < snk.size; i++){ // Check Self Collision
       if (snk.part[0].position == snk.part[i].position){
+        
         cout<<endl <<"GAME OVER" <<endl;
         snk.stop();
+        while(window.isOpen()){
+          while (window.pollEvent(window_event)){
+            if (window_event.type == sf::Event::Closed) window.close();
+          }
+        }
+        //snake_part::shape.setPosition(snk.part[0].position); 
+        //window.draw(snake_part::shape);
+        //window.display();
       }
     }
     
