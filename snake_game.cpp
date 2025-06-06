@@ -7,6 +7,8 @@ class snake;
 
 class snake_part;
 
+// Class Declarations
+
 class game_window{
   public:
  
@@ -14,10 +16,17 @@ class game_window{
     int height = 0;
     int max_x = 0; // (Usually width - 1)
     int max_y = 0; // (Usually height - 1)
+    sf::Font font;
     
     string title = "";
     
     game_window(){}
+    
+    game_window(string f_title, int f_width, int f_height){
+      width = f_width;
+      height = f_height;
+      title = f_title;
+    }
     
     
 };
@@ -26,6 +35,10 @@ class snake { // Will hold Snake information
   public:
 
     int size;
+    
+    float speed = 5.0f;
+    float move_interval= 1.0f / speed;
+    float move_timer = 0.0f;
     
     bool is_left = false;
     bool is_right = true;
@@ -40,6 +53,13 @@ class snake { // Will hold Snake information
     
     inline void stop() {
     is_down = is_left = is_right = is_up = false;  
+    }
+    
+    void init();
+    
+    void update_speed(int f_speed){ //updates speed live
+      speed = f_speed;
+      move_interval= 1.0f / speed;
     }
     
     ~snake();
@@ -150,6 +170,13 @@ snake::~snake(){
   delete[] part;
 }
 
+void snake::init(){
+  for (int i = 0; i < size; i++){
+    part[i].position.x = (20 * (size - i)) - 1;
+    part[i].position.y = 0.f;
+  }
+}
+
 // ============================
 
 
@@ -167,56 +194,47 @@ int main(){
   g_window.max_x = g_window.width - 1;
   g_window.max_y = g_window.height - 1;
   g_window.title = "bc snake";
-
+  
+  game_window game_over;
+  game_over.width = 200;
+  game_over.height = 200;
+  game_over.max_x = game_over.width - 1;
+  game_over.max_y = game_over.height - 1;
+  game_over.title = "Game Over";
+  
   snake snk;
   snk.size = 5;
   snk.transform(200); // creates snake with its parts  
   
   snake_part::shape = sf::RectangleShape(sf::Vector2f(20.f, 20.f));
-  snake_part::shape.setFillColor(sf::Color(150, 150, 150));
-  snake_part::shape.setOutlineColor(sf::Color::White);
   
+  snake_part::shape.setFillColor(sf::Color(150, 150, 150));
+  snake_part::shape.setOutlineColor(sf::Color::White);  
   snake_part::shape.setOutlineThickness(1.f); 
   
   snk.is_right=false;
 
+  snk.init(); //initialize snake
 
-  for (int i = 0; i < snk.size; i++){
-    snk.part[i].position.x = (20 * (snk.size - i)) - 1;
-    snk.part[i].position.y = 0.f;
-  }
-
-  sf::RenderWindow
-    window 
-    (sf::VideoMode(g_window.width, g_window.height),g_window.title)
-  ;
-  //window.setFramerateLimit(60);
-  sf::Event window_event;
+  sf::RenderWindow window(sf::VideoMode(g_window.width, g_window.height),g_window.title);
   
-  sf::RectangleShape rect(sf::Vector2f(200.f, 200.f));
-  
-  sf::Vector2f pos;
-  rect.setFillColor(sf::Color::Green);
+  sf::Font font;
   
   sf::Clock clock;
   
-  float snake_speed = 5.0f;
-  float move_interval= 1.0f / snake_speed;
-  float move_timer = 0.0f;
+  sf::Event window_event;
   
-  while(window.isOpen()){
-    
+  if (!font.loadFromFile("Figtree-VariableFont_wght.ttf")) return -1;
+
+  while(window.isOpen()){    
     while (window.pollEvent(window_event)){
       if (window_event.type == sf::Event::Closed) window.close();
     }
     
     sf::Time delta_time = clock.restart();
-    move_timer += delta_time.asSeconds();
-    
-  
+    snk.move_timer += delta_time.asSeconds();
     
     if (window_event.type == sf::Event::KeyPressed){
-      
       if (window_event.key.code == sf::Keyboard::Down && snk.is_up == false){
         cout<<endl<<"Key pressed: Down"<<endl;
         snk.is_down = true;
@@ -241,19 +259,24 @@ int main(){
         snk.is_up = false;
         snk.is_left = false;
         snk.is_right = true;
-      } //else if (window_event.key.code == sf::Keyboard::LShift) 
-        //{snk.size += 1;} 
+      }  
     }
     
     
-    if (move_timer >= move_interval){
-      cout<<endl<<move_timer<<endl;
-      move_timer -= move_interval;
+    if (snk.move_timer >= snk.move_interval){
+      cout<<endl<<snk.move_timer<<endl;
+      snk.move_timer -= snk.move_interval;
       
       if (window_event.type == sf::Event::KeyPressed){
-        if (window_event.key.code == sf::Keyboard::LShift || 
-            window_event.key.code == sf::Keyboard::RShift) 
-        {snk.size += 1;}
+        
+        if (window_event.key.code == sf::Keyboard::LShift 
+                                || 
+            window_event.key.code == sf::Keyboard::RShift){
+          snk.size += 1;
+        }
+        
+        if (window_event.key.code == sf::Keyboard::Enter) snk.update_speed(snk.speed + 1);
+        
       }
       
       // Update Followup
@@ -308,12 +331,12 @@ int main(){
       }
     }
     
+    // Debug
     cout<<"[0].x = "<<snk.part[0].position.x<<"  |  "<<"[1].x = "<<snk.part[1].position.x<<endl;
     cout<<"[0].y = "<<snk.part[0].position.y<<"  |  "<<"[1].y = "<<snk.part[1].position.y<<endl;
-    //rect.setPosition(pos);
+    
     window.clear(sf::Color::White);
     snk.draw_snake(window);
-    //window.draw(rect);
     window.display();
     
     for (int i = 4; i < snk.size; i++){ // Check Self Collision
@@ -321,14 +344,49 @@ int main(){
         
         cout<<endl <<"GAME OVER" <<endl;
         snk.stop();
-        while(window.isOpen()){
-          while (window.pollEvent(window_event)){
-            if (window_event.type == sf::Event::Closed) window.close();
+        
+        sf::RenderWindow game_over_window (sf::VideoMode(game_over.width, game_over.height), game_over.title);
+        
+        sf::Event game_over_event;
+        
+        //window.clear(sf::Color::White);
+        
+        sf::Text text;
+        text.setFont(font);
+        text.setString("Game Over !! \n Press R to Restart \n Press X to Exit");
+        text.setCharacterSize(20);
+        text.setFillColor(sf::Color::White);
+        text.setPosition(10,10);
+        game_over_window.draw(text);
+        game_over_window.display();
+        
+        while(game_over_window.isOpen()){
+          while (game_over_window.pollEvent(game_over_event)){
+            if (game_over_event.type == sf::Event::Closed) {
+              game_over_window.close();
+              window.close();
+            }
           }
+          
+          
+          
+          if (game_over_event.type = sf::Event::KeyPressed){
+            if (game_over_event.key.code == sf::Keyboard::X){
+              game_over_window.close();
+              window.close();
+            }
+            if (game_over_event.key.code == sf::Keyboard::R){
+              snk.size = 5;
+              snk.init();
+              game_over_window.close();
+            }
+          }
+          
+          game_over_window.clear(sf::Color::Black);
+          game_over_window.draw(text);
+          game_over_window.display();
         }
-        //snake_part::shape.setPosition(snk.part[0].position); 
-        //window.draw(snake_part::shape);
-        //window.display();
+  
       }
     }
     
