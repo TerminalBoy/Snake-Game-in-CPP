@@ -37,7 +37,8 @@ class snake { // Will hold Snake information
     int size;
     
     float speed = 5.0f;
-    float move_interval= 1.0f / speed;
+    //float move_interval= 1.0f / speed;
+    float move_interval;
     float move_timer = 0.0f;
     
     bool is_left = false;
@@ -168,9 +169,13 @@ void snake::draw_snake(sf::RenderWindow& f_window){
 
 snake::~snake(){
   delete[] part;
+  cout<<endl<<"Snake Deleted"<<endl;
 }
 
 void snake::init(){
+  
+  update_speed(speed);
+  
   for (int i = 0; i < size; i++){
     part[i].position.x = (20 * (size - i)) - 1;
     part[i].position.y = 0.f;
@@ -203,6 +208,7 @@ int main(){
   game_over.title = "Game Over";
   
   snake snk;
+  snk.update_speed(5);
   snk.size = 5;
   snk.transform(200); // creates snake with its parts  
   
@@ -236,25 +242,25 @@ int main(){
     
     if (window_event.type == sf::Event::KeyPressed){
       if (window_event.key.code == sf::Keyboard::Down && snk.is_up == false){
-        cout<<endl<<"Key pressed: Down"<<endl;
+        //cout<<endl<<"Key pressed: Down"<<endl;
         snk.is_down = true;
         snk.is_up = false;
         snk.is_left = false;
         snk.is_right = false;
       } else if (window_event.key.code == sf::Keyboard::Up && snk.is_down == false){
-        cout<<endl<<"Key pressed: Up"<<endl;
+        //cout<<endl<<"Key pressed: Up"<<endl;
         snk.is_down = false;
         snk.is_up = true;
         snk.is_left = false;
         snk.is_right = false;
       } else if (window_event.key.code == sf::Keyboard::Left && snk.is_right == false){
-        cout<<endl<<"Key pressed: Left"<<endl;
+        //cout<<endl<<"Key pressed: Left"<<endl;
         snk.is_down = false;
         snk.is_up = false;
         snk.is_left = true;
         snk.is_right = false;
       } else if (window_event.key.code == sf::Keyboard::Right && snk.is_left == false){
-        cout<<endl<<"Key pressed: Right"<<endl;
+        //cout<<endl<<"Key pressed: Right"<<endl;
         snk.is_down = false;
         snk.is_up = false;
         snk.is_left = false;
@@ -264,10 +270,12 @@ int main(){
     
     
     if (snk.move_timer >= snk.move_interval){
-      cout<<endl<<snk.move_timer<<endl;
+      //<<endl<<snk.move_timer<<endl;
       snk.move_timer -= snk.move_interval;
       
       if (window_event.type == sf::Event::KeyPressed){
+        
+        
         
         if (window_event.key.code == sf::Keyboard::LShift 
                                 || 
@@ -275,7 +283,10 @@ int main(){
           snk.size += 1;
         }
         
-        if (window_event.key.code == sf::Keyboard::Enter) snk.update_speed(snk.speed + 1);
+        if (window_event.key.code == 37) { //LCtrl
+          snk.update_speed(snk.speed + 1);
+          cout<<endl<<window_event.key.code<<endl;
+        }
         
       }
       
@@ -332,8 +343,8 @@ int main(){
     }
     
     // Debug
-    cout<<"[0].x = "<<snk.part[0].position.x<<"  |  "<<"[1].x = "<<snk.part[1].position.x<<endl;
-    cout<<"[0].y = "<<snk.part[0].position.y<<"  |  "<<"[1].y = "<<snk.part[1].position.y<<endl;
+    //cout<<"[0].x = "<<snk.part[0].position.x<<"  |  "<<"[1].x = "<<snk.part[1].position.x<<endl;
+    //cout<<"[0].y = "<<snk.part[0].position.y<<"  |  "<<"[1].y = "<<snk.part[1].position.y<<endl;
     
     window.clear(sf::Color::White);
     snk.draw_snake(window);
@@ -377,6 +388,7 @@ int main(){
             }
             if (game_over_event.key.code == sf::Keyboard::R){
               snk.size = 5;
+              snk.update_speed(5);
               snk.init();
               game_over_window.close();
             }
