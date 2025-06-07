@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstdlib>
 #include <SFML/Graphics.hpp>
 using namespace std;
 
@@ -30,7 +31,7 @@ class game_window{
     
     
 };
-  
+
 class snake { // Will hold Snake information  
   public:
 
@@ -97,9 +98,62 @@ class snake_part{
     }
 };
 
+class snake_food{
+  public:
+  
+  sf::Vector2f position;
+  sf::Vector2f temp;
+  sf::CircleShape shape;
+  
+  bool eaten = false;
+  
+  snake_food(){
+    shape.setFillColor(sf::Color::Blue);
+  }
+  snake_food(int f_radius){
+    shape.setRadius(f_radius);
+    shape.setFillColor(sf::Color::Blue);
+  }
+  
+  void put_food(snake& f_snake, sf::RenderWindow& f_window){
+    if (eaten == true){
+      cout<<endl<<"Food Added"<<endl;
+      int ran_x;
+      int ran_y;
+      sf::Vector2f position;
+      bool exit_loop = false;
+      
+      do{
+        
+        
+        ran_x = rand() % 35; //(game_window::max_x / 20)
+        ran_y = rand() % 25; //(game_window::max_y / 20)
+        
+        position.x = ran_x * 20; 
+        position.y = ran_y * 20;
+        
+        
+        // make sure food dosent come on snake body
+        for (int i = 0; i < f_snake.size; i++){
+          // make the logic for not adding food on snake, snake body/part
+          if (   position.x >= f_snake.part[i].position.x
+              && position.x <= (f_snake.part[i].position.x + 20)
+              && position.y >= f_snake.part[i].position.y
+              && position.y <= (f_snake.part[i].position.y + 20)) 
+              exit_loop = true; 
+        }
+      } while (!exit_loop);
+      
+      eaten = false;
+    }
+    shape.setPosition(position);
+    temp = shape.getPosition();
+    cout<<endl<<temp.x<<" | "<<temp.y<<endl;
+    f_window.draw(shape);
+  }
+};
 
 // Out of Class, Member function declaritions - To resolve Circular Dependencies
-
 void snake::transform(int f_max_size){ // Will resize the snake_part array
   int temp_max_size = snake::max_size; // Backup for further use of resizing
   
@@ -181,14 +235,11 @@ void snake::init(){
     part[i].position.y = 0.f;
   }
 }
-
 // ============================
 
 
 // Global Declarations
-
 sf::RectangleShape snake_part::shape;
-
 //=============================
 
 
@@ -212,11 +263,13 @@ int main(){
   snk.size = 5;
   snk.transform(200); // creates snake with its parts  
   
-  snake_part::shape = sf::RectangleShape(sf::Vector2f(20.f, 20.f));
-  
+  snake_part::shape = sf::RectangleShape(sf::Vector2f(20.f, 20.f));  
   snake_part::shape.setFillColor(sf::Color(150, 150, 150));
   snake_part::shape.setOutlineColor(sf::Color::White);  
   snake_part::shape.setOutlineThickness(1.f); 
+  
+  snake_food food(10.f);
+  food.eaten = true; // to first initialize the food
   
   snk.is_right=false;
 
@@ -270,7 +323,7 @@ int main(){
     
     
     if (snk.move_timer >= snk.move_interval){
-      //<<endl<<snk.move_timer<<endl;
+      
       snk.move_timer -= snk.move_interval;
       
       if (window_event.type == sf::Event::KeyPressed){
@@ -285,7 +338,6 @@ int main(){
         
         if (window_event.key.code == 37) { //LCtrl
           snk.update_speed(snk.speed + 1);
-          cout<<endl<<window_event.key.code<<endl;
         }
         
       }
@@ -342,14 +394,18 @@ int main(){
       }
     }
     
-    // Debug
-    //cout<<"[0].x = "<<snk.part[0].position.x<<"  |  "<<"[1].x = "<<snk.part[1].position.x<<endl;
-    //cout<<"[0].y = "<<snk.part[0].position.y<<"  |  "<<"[1].y = "<<snk.part[1].position.y<<endl;
     
-    window.clear(sf::Color::White);
-    snk.draw_snake(window);
-    window.display();
+    // to detect if food is eaten or not 
     
+    if (snk.part[0].position == food.position){
+      food.eaten = true;
+    }
+    
+    food.put_food(snk, window);
+    
+    
+    
+    // to detect self collision
     for (int i = 4; i < snk.size; i++){ // Check Self Collision
       if (snk.part[0].position == snk.part[i].position){
         
@@ -402,7 +458,13 @@ int main(){
       }
     }
     
-  
+    window.clear(sf::Color::White);
+    snk.draw_snake(window);
+    window.display();
+    
+    
+    
+    
   }
   return 0;
 }
