@@ -263,7 +263,7 @@ int main(){
   game_over.title = "Game Over";
   
   snake snk;
-  snk.update_speed(1);
+  snk.update_speed(5);
   snk.size = 5;
   snk.transform(200); // creates snake with its parts  
   
@@ -295,7 +295,7 @@ int main(){
 
   while(window.isOpen()){
     
-    window.clear(sf::Color::White);
+    
         
     while (window.pollEvent(window_event)){
       if (window_event.type == sf::Event::Closed) window.close();
@@ -353,6 +353,16 @@ int main(){
         
       }
       
+      // to detect if food is eaten or not 
+      if (snk.part[0].position == food.shape.getPosition()){
+        food.eaten = true;
+        snk.update_speed(snk.speed + 1);
+        
+        //if (snk.size > snk.get_max_size() - 2) snk.transform(snk.get_max_size() + 100);
+        snk.size += 1;
+        cout<<endl<<"Food Eated"<<endl;
+      }
+      
       // Update Followup
       for (int i = 0; i <snk.size; i++){
         snk.part[i].followup = snk.part[i].position;
@@ -406,16 +416,7 @@ int main(){
     }
     
     
-    // to detect if food is eaten or not 
-    cout<<endl<<snk.part[0].position.x <<"  |  "<<snk.part[0].position.y<<endl;
-    if (snk.part[0].position == food.shape.getPosition()){
-      food.eaten = true;
-      snk.update_speed(snk.speed + 1);
-      
-      //if (snk.size > snk.get_max_size() - 2) snk.transform(snk.get_max_size() + 100);
-      snk.size += 1;
-      cout<<endl<<"Food Eated"<<endl;
-    }
+    
     
     // to detect self collision
     for (int i = 4; i < snk.size; i++){ // Check Self Collision
@@ -469,7 +470,7 @@ int main(){
   
       }
     }
-    
+    window.clear(sf::Color::White);
     food.put_food(snk, window);
     snk.draw_snake(window);
     window.display();
