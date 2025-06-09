@@ -59,7 +59,7 @@ class snake { // Will hold Snake information
     
     void init();
     
-    void update_speed(int f_speed){ //updates speed live
+    void update_speed(float f_speed){ //updates speed live
       speed = f_speed;
       move_interval= 1.0f / speed;
     }
@@ -141,7 +141,11 @@ class snake_food{
         // make sure food dosent come on snake body
         for (int i = 0; i < f_snake.size; i++){
           // make the logic for not adding food on snake, snake body/part
-          if (position != f_snake.part[i].position) exit_loop = true; 
+          if (position == f_snake.part[i].position) {
+            exit_loop = false;
+            break;
+          } 
+          exit_loop = true;
         }
       } while (exit_loop == false);
       
@@ -253,11 +257,11 @@ int main(){
   g_window.height = 500;
   g_window.max_x = g_window.width - 1;
   g_window.max_y = g_window.height - 1;
-  g_window.title = "bc snake";
+  g_window.title = "Snake Game - @skshazkamil";
   
   game_window game_over;
   game_over.width = 200;
-  game_over.height = 200;
+  game_over.height = 100;
   game_over.max_x = game_over.width - 1;
   game_over.max_y = game_over.height - 1;
   game_over.title = "Game Over";
@@ -277,7 +281,7 @@ int main(){
   food.position.y = 400;
   food.color = sf::Color::Red;
   
-  food.eaten = false; // to first initialize the food
+  food.eaten = true; // to first initialize the food
   
   snk.is_right=false;
 
@@ -333,13 +337,13 @@ int main(){
     }
     
     
-    if (snk.move_timer >= snk.move_interval){
+    if (snk.move_timer >= snk.move_interval){ //Frames as per snake speed
       
       snk.move_timer -= snk.move_interval;
       
+      // Debug =============
+      /*
       if (window_event.type == sf::Event::KeyPressed){
-        
-        
         
         if (window_event.key.code == sf::Keyboard::LShift 
                                 || 
@@ -351,29 +355,29 @@ int main(){
           snk.update_speed(snk.speed + 1);
         }
         
-      }
+      } */
       
       // to detect if food is eaten or not 
       if (snk.part[0].position == food.shape.getPosition()){
         food.eaten = true;
-        snk.update_speed(snk.speed + 1);
+        snk.update_speed(snk.speed + 0.5f);
         
         //if (snk.size > snk.get_max_size() - 2) snk.transform(snk.get_max_size() + 100);
         snk.size += 1;
-        cout<<endl<<"Food Eated"<<endl;
+        // Debug //cout<<endl<<"Food Eated"<<endl;
       }
       
       // Update Followup
-      for (int i = 0; i <snk.size; i++){
+      for (int i = 0; i < snk.size; i++){
         snk.part[i].followup = snk.part[i].position;
       }    
       //==================
 
-      
+      // Snake Movement Logic :
       if (snk.is_down){
         snk.part[0].position.y += 20.f;
         
-        if (snk.part[0].position.y >= g_window.max_y)
+        if (snk.part[0].position.y >= g_window.max_y) //Teleportation when out of screen
         {snk.part[0].position.y = 0;}
         
         for (int i = 1; i <snk.size; i++){
@@ -448,8 +452,6 @@ int main(){
             }
           }
           
-          
-          
           if (game_over_event.type = sf::Event::KeyPressed){
             if (game_over_event.key.code == sf::Keyboard::X){
               game_over_window.close();
@@ -470,11 +472,12 @@ int main(){
   
       }
     }
+    //Main window =======
     window.clear(sf::Color::White);
     food.put_food(snk, window);
     snk.draw_snake(window);
     window.display();
     
-  }
+  } // Main loop ends
   return 0;
 }
