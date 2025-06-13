@@ -1,6 +1,8 @@
 # Snake Game written in Cpp/C++
 
 This is a simple classic snake game that I wrote in C++/Cpp
+It uses SFML Graphics libraries to generate 2d images and graphical window
+
 
 ## Features:
 - Food for the snake
