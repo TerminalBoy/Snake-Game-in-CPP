@@ -124,7 +124,7 @@ class snake_food{
   void put_food(snake& f_snake, sf::RenderWindow& f_window){
     srand(time(0));
     if (eaten == true){
-      cout<<endl<<"Food Added"<<endl;
+      //cout<<endl<<"Food Added"<<endl;
       int ran_x;
       int ran_y;
       
@@ -231,7 +231,7 @@ void snake::draw_snake(sf::RenderWindow& f_window){
 
 snake::~snake(){
   delete[] part;
-  cout<<endl<<"Snake Deleted"<<endl;
+  //cout<<endl<<"Snake Deleted"<<endl;
 }
 
 void snake::init(){
@@ -307,6 +307,11 @@ int main(){
     
     sf::Time delta_time = clock.restart();
     snk.move_timer += delta_time.asSeconds();
+    
+    //Just in case the snake gets larger than its part array.. we resize the
+    // array using custom made array resizing function snake::transform(int new_size) 
+    if (snk.size > snk.get_max_size() - 4) snk.transform(snk.get_max_size() + 200); 
+    // increments the part array by 200
     
     if (window_event.type == sf::Event::KeyPressed){
       if (window_event.key.code == sf::Keyboard::Down && snk.is_up == false){
@@ -426,7 +431,7 @@ int main(){
     for (int i = 4; i < snk.size; i++){ // Check Self Collision
       if (snk.part[0].position == snk.part[i].position){
         
-        cout<<endl <<"GAME OVER" <<endl;
+        //cout<<endl <<"GAME OVER" <<endl;
         snk.stop();
         
         sf::RenderWindow game_over_window (sf::VideoMode(game_over.width, game_over.height), game_over.title);
