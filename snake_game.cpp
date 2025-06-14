@@ -428,7 +428,7 @@ int main(){
     
     
     // to detect self collision
-    for (int i = 4; i < snk.size; i++){ // Check Self Collision
+    for (int i = 1; i < snk.size; i++){ // Check Self Collision
       if (snk.part[0].position == snk.part[i].position){
         
         //cout<<endl <<"GAME OVER" <<endl;
@@ -451,32 +451,37 @@ int main(){
         
         while(game_over_window.isOpen()){
           while (game_over_window.pollEvent(game_over_event)){
+          
             if (game_over_event.type == sf::Event::Closed) {
               game_over_window.close();
               window.close();
             }
-          }
           
-          if (game_over_event.type = sf::Event::KeyPressed){
-            if (game_over_event.key.code == sf::Keyboard::X){
-              game_over_window.close();
-              window.close();
-            }
-            if (game_over_event.key.code == sf::Keyboard::R){
-              snk.size = 5;
-              snk.update_speed(5);
-              snk.init();
-              game_over_window.close();
-            }
-          }
           
-          game_over_window.clear(sf::Color::Black);
-          game_over_window.draw(text);
-          game_over_window.display();
-        }
-  
-      }
-    }
+            if (game_over_event.type == sf::Event::KeyPressed){
+              if (game_over_event.key.code == sf::Keyboard::X){
+                game_over_window.close();
+                window.close();
+              }
+              if (game_over_event.key.code == sf::Keyboard::R){
+                snk.size = 5;
+                snk.update_speed(5);
+                snk.init();
+                i = snk.size - 1; // to end the for loop
+                game_over_window.close();
+              }
+            }
+            
+            game_over_window.clear(sf::Color::Black);
+            game_over_window.draw(text);
+            game_over_window.display();
+            
+          } //while (game_over_window.pollEvent(game_over_event))
+        } //while(game_over_window.isOpen())
+      } //if (snk.part[0].position == snk.part[i].position)
+    
+    }// for loop ends
+    
     //Main window =======
     window.clear(sf::Color::White);
     food.put_food(snk, window);
