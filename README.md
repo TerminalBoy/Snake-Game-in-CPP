@@ -17,7 +17,7 @@ It uses SFML Graphics libraries to generate 2d images and graphical window
   - Install SFML Libraries on your system (Windows / Linux)
   - Use GCC G++ Compiler to compile (Also Linking the SFML Libraries)
     - Bash:$ g++ snake_game.cpp -o Snake_Game.out -lsfml-system -lsfml-window -lsfml-graphics
-    - Cmd :$ g++ snake_game.exe -o Snake_Game.out -lsfml-system -lsfml-window -lsfml-graphics
+    - Cmd :$ g++ snake_game.cpp -o Snake_Game.exe -lsfml-system -lsfml-window -lsfml-graphics
   - After Compilation for your specific OS:
     - Bash :$ ./Snake_Game.out
     - Cmd :$ ./Snake_Game.exe
