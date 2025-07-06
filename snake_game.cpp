@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <SFML/Graphics.hpp>
-using namespace std;
+//using namespace std;
 
 // Forward Declarations
 class snake;
@@ -19,11 +19,11 @@ class game_window{
     int max_y = 0; // (Usually height - 1)
     sf::Font font;
     
-    string title = "";
+    std::string title = "";
     
     game_window(){}
     
-    game_window(string f_title, int f_width, int f_height){
+    game_window(std::string f_title, int f_width, int f_height){
       width = f_width;
       height = f_height;
       title = f_title;
