@@ -13,93 +13,93 @@ class snake_part;
 class game_window{
   public:
  
-    int width = 0; // Width and Height of game screen 
-    int height = 0;
-    int max_x = 0; // (Usually width - 1)
-    int max_y = 0; // (Usually height - 1)
-    sf::Font font;
-    
-    std::string title = "";
-    
-    game_window(){}
-    
-    game_window(std::string f_title, int f_width, int f_height){
-      width = f_width;
-      height = f_height;
-      title = f_title;
-    }
-    
+  int width = 0; // Width and Height of game screen 
+  int height = 0;
+  int max_x = 0; // (Usually width - 1)
+  int max_y = 0; // (Usually height - 1)
+  sf::Font font;
+  
+  std::string title = "";
+  
+  game_window(){}
+  
+  game_window(std::string f_title, int f_width, int f_height){
+    width = f_width;
+    height = f_height;
+    title = f_title;
+  }
+  
     
 };
 
 class snake { // Will hold Snake information  
   public:
 
-    int size;
-    
-    float speed = 5.0f;
-    //float move_interval= 1.0f / speed;
-    float move_interval;
-    float move_timer = 0.0f;
-    
-    bool is_left = false;
-    bool is_right = true;
-    bool is_up = false;
-    bool is_down = false;
-    
-    snake_part* part = nullptr; // Initially is a null pointer, will be set later
-    
-    void transform(int);
-    
-    void draw_snake(sf::RenderWindow& f_window);
-    
-    inline void stop() {
-    is_down = is_left = is_right = is_up = false;  
-    }
-    
-    void init();
-    
-    void update_speed(float f_speed){ //updates speed live
-      speed = f_speed;
-      move_interval= 1.0f / speed;
-    }
-    
-    inline int get_max_size(){
-      return max_size;  
-    }
-    
-    ~snake();
-    
+  int size;
+  
+  float speed = 5.0f;
+  //float move_interval= 1.0f / speed;
+  float move_interval;
+  float move_timer = 0.0f;
+  
+  bool is_left = false;
+  bool is_right = true;
+  bool is_up = false;
+  bool is_down = false;
+  
+  snake_part* part = nullptr; // Initially is a null pointer, will be set later
+  
+  void transform(int);
+  
+  void draw_snake(sf::RenderWindow& f_window);
+  
+  inline void stop() {
+  is_down = is_left = is_right = is_up = false;  
+  }
+  
+  void init();
+  
+  void update_speed(float f_speed){ //updates speed live
+    speed = f_speed;
+    move_interval= 1.0f / speed;
+  }
+  
+  inline int get_max_size(){
+    return max_size;  
+  }
+  
+  ~snake();
+  
   protected:
-    int max_size;
+  int max_size;
 };
 
 class snake_part{
   public:
-    //int x = 0; // Coordinates of current blocks
-    //int y = 0;
-    
-    
-    sf::Vector2f position;
-    sf::Vector2f followup;  //Coordinates of previous blocks
-    
-    
-    static sf::RectangleShape shape;
-    
-    static void deep_copy(snake_part*& copy_from, snake_part*& copy_to, int copy_till){
-      for (int i = 0; i < copy_till; i++){
-        
-        //copy_to[i].x = copy_from[i].x;
-        //copy_to[i].y = copy_from[i].y;
-        
-        copy_to[i].position = copy_from[i].position;
-        
-        copy_to[i].followup.x = copy_from[i].followup.x;
-        copy_to[i].followup.y = copy_from[i].followup.y;
+  //int x = 0; // Coordinates of current blocks
+  //int y = 0;
+  
+  
+  sf::Vector2f position;
+  sf::Vector2f followup;  //Coordinates of previous blocks
+  
+  
+  static sf::RectangleShape shape;
+  
+  static void deep_copy(snake_part*& copy_from, snake_part*& copy_to, int copy_till){
+    for (int i = 0; i < copy_till; i++){
       
-      }
+      //copy_to[i].x = copy_from[i].x;
+      //copy_to[i].y = copy_from[i].y;
       
+      copy_to[i].position = copy_from[i].position;
+      
+      copy_to[i].followup.x = copy_from[i].followup.x;
+      copy_to[i].followup.y = copy_from[i].followup.y;
+    
     }
+    
+  }
 };
 
 class snake_food{
