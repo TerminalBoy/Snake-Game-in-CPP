@@ -1,4 +1,4 @@
-#include <iostream> // only  for debugging
+//#include <iostream> // only  for debugging
 #include <cstdlib>  
 #include <vector>
 #include <string>
@@ -41,11 +41,17 @@ class snake { // Will hold Snake information
   float move_interval;
   float move_timer = 0.0f;
   
-  bool is_left = false;
+  //DEPRECATED
+  /*bool is_left = false;
   bool is_right = true;
   bool is_up = false;
   bool is_down = false;
+  */
  
+  enum class direction {up, down, left, right, stop};
+  
+  direction dir;
+  
   //DEPRICATED
   // snake_part* part = nullptr; // Initially is a null pointer, will be set later
  
@@ -59,7 +65,9 @@ class snake { // Will hold Snake information
   void draw_snake(sf::RenderWindow& f_window);
   
   inline void stop() {
-  is_down = is_left = is_right = is_up = false;  
+    //DEPRECATED
+    //is_down = is_left = is_right = is_up = false;  
+    dir = snake::direction::stop;
   }
   
   void init();
@@ -323,7 +331,7 @@ int main(){
   
   food.eaten = true; // to first initialize the food
   
-  snk.is_right=false;
+  snk.stop();
 
   snk.init(); //initialize snake
 
@@ -354,30 +362,34 @@ int main(){
     // increments the part array by 200
     
     if (window_event.type == sf::Event::KeyPressed){
-      if (window_event.key.code == sf::Keyboard::Down && snk.is_up == false){
+      if (window_event.key.code == sf::Keyboard::Down && snk.dir != snake::direction::up){
         //cout<<endl<<"Key pressed: Down"<<endl;
-        snk.is_down = true;
-        snk.is_up = false;
-        snk.is_left = false;
-        snk.is_right = false;
-      } else if (window_event.key.code == sf::Keyboard::Up && snk.is_down == false){
+        //snk.is_down = true;
+        //snk.is_up = false;
+        //snk.is_left = false;
+        //snk.is_right = false;
+        snk.dir = snake::direction::down;
+      } else if (window_event.key.code == sf::Keyboard::Up && snk.dir != snake::direction::down){
         //cout<<endl<<"Key pressed: Up"<<endl;
-        snk.is_down = false;
-        snk.is_up = true;
-        snk.is_left = false;
-        snk.is_right = false;
-      } else if (window_event.key.code == sf::Keyboard::Left && snk.is_right == false){
+        //snk.is_down = false;
+        //snk.is_up = true;
+        //snk.is_left = false;
+        //snk.is_right = false;
+        snk.dir = snake::direction::up;
+      } else if (window_event.key.code == sf::Keyboard::Left && snk.dir != snake::direction::right){
         //cout<<endl<<"Key pressed: Left"<<endl;
-        snk.is_down = false;
-        snk.is_up = false;
-        snk.is_left = true;
-        snk.is_right = false;
-      } else if (window_event.key.code == sf::Keyboard::Right && snk.is_left == false){
+        //snk.is_down = false;
+        //snk.is_up = false;
+        //snk.is_left = true;
+        //snk.is_right = false;
+        snk.dir = snake::direction::left;
+      } else if (window_event.key.code == sf::Keyboard::Right && snk.dir != snake::direction::left){
         //cout<<endl<<"Key pressed: Right"<<endl;
-        snk.is_down = false;
-        snk.is_up = false;
-        snk.is_left = false;
-        snk.is_right = true;
+        //snk.is_down = false;
+        //snk.is_up = false;
+        //snk.is_left = false;
+        //snk.is_right = true;
+        snk.dir = snake::direction::right;
       }  
     }
     
@@ -419,7 +431,7 @@ int main(){
       //==================
 
       // Snake Movement Logic :
-      if (snk.is_down){
+      if (snk.dir == snake::direction::down){ //down
         snk.part[0].position.y += 20.f;
         
         if (snk.part[0].position.y >= g_window.max_y) //Teleportation when out of screen
@@ -430,7 +442,7 @@ int main(){
         }
       }
       
-      else if (snk.is_up){
+      else if (snk.dir == snake::direction::up){ // up
         snk.part[0].position.y -= 20.f;
         
         if (snk.part[0].position.y <= -20)
@@ -441,7 +453,7 @@ int main(){
         }
       }
       
-      else if (snk.is_left){
+      else if (snk.dir == snake::direction::left){ // left
         snk.part[0].position.x -= 20.f;
         
         if (snk.part[0].position.x <= -20)
@@ -452,7 +464,7 @@ int main(){
         }
       }
       
-      else if (snk.is_right){
+      else if (snk.dir == snake::direction::right){ // right
         snk.part[0].position.x += 20.f;
         
         if (snk.part[0].position.x >= g_window.max_x) 
