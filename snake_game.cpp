@@ -1,7 +1,8 @@
-#include <iostream>
-#include <cstdlib>
+#include <iostream> // only  for debugging
+#include <cstdlib>  
+#include <vector>
+#include <string>
 #include <SFML/Graphics.hpp>
-//using namespace std;
 
 // Forward Declarations
 class snake;
@@ -34,8 +35,6 @@ class game_window{
 
 class snake { // Will hold Snake information  
   public:
-
-  int size;
   
   float speed = 5.0f;
   //float move_interval= 1.0f / speed;
@@ -46,10 +45,16 @@ class snake { // Will hold Snake information
   bool is_right = true;
   bool is_up = false;
   bool is_down = false;
+ 
+  //DEPRICATED
+  // snake_part* part = nullptr; // Initially is a null pointer, will be set later
+ 
+  std::vector<snake_part> part;
   
-  snake_part* part = nullptr; // Initially is a null pointer, will be set later
+  //DEPRICATED
+  //void transform(int);
   
-  void transform(int);
+  snake(){}
   
   void draw_snake(sf::RenderWindow& f_window);
   
@@ -64,14 +69,41 @@ class snake { // Will hold Snake information
     move_interval= 1.0f / speed;
   }
   
-  inline int get_max_size(){
-    return max_size;  
+  void plus_size(int f_size){
+    for (int i = 0; i < f_size; i++){
+      part.emplace_back();
+    }
   }
+  
+  void minus_size(int f_size){
+    if (f_size > part.size()) f_size = part.size(); // bounds checking
+    for (int i = 0; i < f_size; i++){
+      part.pop_back();
+    }
+  }
+  
+  void set_size(const int& f_size){ // is slow and has overheads
+    if (f_size > part.size())
+      plus_size(f_size - part.size());
+      
+    else if (f_size < part.size())
+      minus_size(part.size() - f_size);
+  }
+  
+  inline int get_size(){
+    return part.size();
+  }
+  //DEPRICATED 
+  /*inline int get_max_size(){
+    return max_size;  
+  }*/
   
   ~snake();
   
   protected:
-  int max_size;
+  
+  //DEPRICATED
+  //int max_size;
 };
 
 class snake_part{
@@ -86,7 +118,8 @@ class snake_part{
   
   static sf::RectangleShape shape;
   
-  static void deep_copy(snake_part*& copy_from, snake_part*& copy_to, int copy_till){
+  //DEPRICATED
+  /*static void deep_copy(snake_part*& copy_from, snake_part*& copy_to, int copy_till){
     for (int i = 0; i < copy_till; i++){
       
       //copy_to[i].x = copy_from[i].x;
@@ -99,12 +132,11 @@ class snake_part{
     
     }
     
-  }
+  }*/
 };
 
 class snake_food{
   public:
-  
   
   float radius;
   sf::Color color;
@@ -118,39 +150,40 @@ class snake_food{
     shape.setRadius(10.f);
     color = sf::Color::Red;
   }
-  snake_food(float f_radius){
-  }
   
   void put_food(snake& f_snake, sf::RenderWindow& f_window){
-    srand(time(0));
-    if (eaten == true){
-      //cout<<endl<<"Food Added"<<endl;
-      int ran_x;
-      int ran_y;
-      
-      bool exit_loop = false;
-      
-      do{
-        
-        ran_x = rand() % 35; //(game_window::max_x / 20)
-        ran_y = rand() % 25; //(game_window::max_y / 20)
-        
-        position.x = ran_x * 20; 
-        position.y = ran_y * 20;
-        
-        // make sure food dosent come on snake body
-        for (int i = 0; i < f_snake.size; i++){
-          // make the logic for not adding food on snake, snake body/part
-          if (position == f_snake.part[i].position) {
-            exit_loop = false;
-            break;
-          } 
-          exit_loop = true;
-        }
-      } while (exit_loop == false);
-      
-      eaten = false;
+
+    if (!eaten) {
+      f_window.draw(shape);
+      return;
     }
+
+    int ran_x;
+    int ran_y;
+    
+    bool exit_loop = false;
+    
+    do{
+      
+      ran_x = rand() % 35; //(game_window::max_x / 20)
+      ran_y = rand() % 25; //(game_window::max_y / 20)
+      
+      position.x = ran_x * 20; 
+      position.y = ran_y * 20;
+      
+      // make sure food dosent come on snake body
+      for (int i = 0; i < f_snake.get_size(); i++){
+        // make the logic for not adding food on snake, snake body/part
+        if (position == f_snake.part[i].position) {
+          exit_loop = false;
+          break;
+        } 
+        exit_loop = true;
+      }
+    } while (exit_loop == false);
+    
+    eaten = false;
+    
     //shape.setPosition(position);
     //temp = shape.getPosition();
     //cout<<endl<<temp.x<<" | "<<temp.y<<endl;
@@ -162,7 +195,9 @@ class snake_food{
 };
 
 // Out of Class, Member function declaritions - To resolve Circular Dependencies
-void snake::transform(int f_max_size){ // Will resize the snake_part array
+
+// DEPRICATED
+/*void snake::transform(int f_max_size){ // Will resize the snake_part array
   int temp_max_size = snake::max_size; // Backup for further use of resizing
   
   max_size = f_max_size; // Override with provided values
@@ -212,7 +247,7 @@ void snake::transform(int f_max_size){ // Will resize the snake_part array
   //===============================================================
   
 
-}
+} */
 
 void snake::draw_snake(sf::RenderWindow& f_window){
   sf::Color temp = snake_part::shape.getFillColor();
@@ -223,14 +258,15 @@ void snake::draw_snake(sf::RenderWindow& f_window){
   
   snake_part::shape.setFillColor(temp);
   
-  for (int i = 1; i < size; i++){
+  for (int i = 1; i < get_size(); i++){
     snake_part::shape.setPosition(part[i].position);
     f_window.draw(snake_part::shape);
   }
 }
 
 snake::~snake(){
-  delete[] part;
+  //DEPRICATE
+  //delete[] part;
   //cout<<endl<<"Snake Deleted"<<endl;
 }
 
@@ -238,8 +274,10 @@ void snake::init(){
   
   update_speed(speed);
   
-  for (int i = 0; i < size; i++){
-    part[i].position.x = (20 * (size - i));
+  set_size(5);
+  
+  for (int i = 0; i < get_size(); i++){
+    part[i].position.x = (20 * (get_size() - i));
     part[i].position.y = 0.f;
   }
 }
@@ -252,6 +290,8 @@ sf::RectangleShape snake_part::shape;
 
 
 int main(){
+  srand(time(0));
+  
   game_window g_window;
   g_window.width = 700;
   g_window.height = 500;
@@ -268,8 +308,8 @@ int main(){
   
   snake snk;
   snk.update_speed(5);
-  snk.size = 5;
-  snk.transform(200); // creates snake with its parts  
+  snk.set_size(5);
+    
   
   snake_part::shape = sf::RectangleShape(sf::Vector2f(20.f, 20.f));  
   snake_part::shape.setFillColor(sf::Color(150, 150, 150));
@@ -277,8 +317,8 @@ int main(){
   snake_part::shape.setOutlineThickness(1.f); 
   
   snake_food food;
-  food.position.x = 400;
-  food.position.y = 400;
+  //food.position.x = 400;
+  //food.position.y = 400;
   food.color = sf::Color::Red;
   
   food.eaten = true; // to first initialize the food
@@ -310,7 +350,7 @@ int main(){
     
     //Just in case the snake gets larger than its part array.. we resize the
     // array using custom made array resizing function snake::transform(int new_size) 
-    if (snk.size > snk.get_max_size() - 4) snk.transform(snk.get_max_size() + 200); 
+    //if (snk.size > snk.get_max_size() - 4) snk.transform(snk.get_max_size() + 200); 
     // increments the part array by 200
     
     if (window_event.type == sf::Event::KeyPressed){
@@ -368,12 +408,12 @@ int main(){
         snk.update_speed(snk.speed + 0.5f);
         
         //if (snk.size > snk.get_max_size() - 2) snk.transform(snk.get_max_size() + 100);
-        snk.size += 1;
+        snk.plus_size(1);
         // Debug //cout<<endl<<"Food Eated"<<endl;
       }
       
       // Update Followup
-      for (int i = 0; i < snk.size; i++){
+      for (int i = 0; i < snk.get_size(); i++){
         snk.part[i].followup = snk.part[i].position;
       }    
       //==================
@@ -385,7 +425,7 @@ int main(){
         if (snk.part[0].position.y >= g_window.max_y) //Teleportation when out of screen
         {snk.part[0].position.y = 0;}
         
-        for (int i = 1; i <snk.size; i++){
+        for (int i = 1; i <snk.get_size(); i++){
           snk.part[i].position = snk.part[i - 1].followup;
         }
       }
@@ -396,7 +436,7 @@ int main(){
         if (snk.part[0].position.y <= -20)
         {snk.part[0].position.y = g_window.max_y - 19;} 
         
-        for (int i = 1; i <snk.size; i++){
+        for (int i = 1; i <snk.get_size(); i++){
           snk.part[i].position = snk.part[i - 1].followup;
         }
       }
@@ -407,7 +447,7 @@ int main(){
         if (snk.part[0].position.x <= -20)
         {snk.part[0].position.x = g_window.max_x - 19;}
                 
-        for (int i = 1; i <snk.size; i++){
+        for (int i = 1; i <snk.get_size(); i++){
           snk.part[i].position = snk.part[i - 1].followup;
         }
       }
@@ -418,7 +458,7 @@ int main(){
         if (snk.part[0].position.x >= g_window.max_x) 
         {snk.part[0].position.x = 0;}
         
-        for (int i = 1; i <snk.size; i++){
+        for (int i = 1; i <snk.get_size(); i++){
           snk.part[i].position = snk.part[i - 1].followup;
         }
       }
@@ -428,7 +468,7 @@ int main(){
     
     
     // to detect self collision
-    for (int i = 1; i < snk.size; i++){ // Check Self Collision
+    for (int i = 1; i < snk.get_size(); i++){ // Check Self Collision
       if (snk.part[0].position == snk.part[i].position){
         
         //cout<<endl <<"GAME OVER" <<endl;
@@ -464,10 +504,10 @@ int main(){
                 window.close();
               }
               if (game_over_event.key.code == sf::Keyboard::R){
-                snk.size = 5;
+                snk.set_size(5);
                 snk.update_speed(5);
                 snk.init();
-                i = snk.size - 1; // to end the for loop
+                i = snk.get_size() - 1; // to end the for loop
                 game_over_window.close();
               }
             }
