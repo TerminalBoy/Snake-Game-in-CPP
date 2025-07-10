@@ -41,32 +41,18 @@ class snake { // Will hold Snake information
   float move_interval;
   float move_timer = 0.0f;
   
-  //DEPRECATED
-  /*bool is_left = false;
-  bool is_right = true;
-  bool is_up = false;
-  bool is_down = false;
-  */
- 
   enum class direction {up, down, left, right, stop};
   
   direction dir;
-  
-  //DEPRICATED
-  // snake_part* part = nullptr; // Initially is a null pointer, will be set later
  
   std::vector<snake_part> part;
   
-  //DEPRICATED
-  //void transform(int);
   
   snake(){}
   
   void draw_snake(sf::RenderWindow& f_window);
   
   inline void stop() {
-    //DEPRECATED
-    //is_down = is_left = is_right = is_up = false;  
     dir = snake::direction::stop;
   }
   
@@ -101,17 +87,11 @@ class snake { // Will hold Snake information
   inline int get_size(){
     return part.size();
   }
-  //DEPRICATED 
-  /*inline int get_max_size(){
-    return max_size;  
-  }*/
   
   ~snake();
   
   protected:
-  
-  //DEPRICATED
-  //int max_size;
+
 };
 
 class snake_part{
@@ -126,21 +106,6 @@ class snake_part{
   
   static sf::RectangleShape shape;
   
-  //DEPRICATED
-  /*static void deep_copy(snake_part*& copy_from, snake_part*& copy_to, int copy_till){
-    for (int i = 0; i < copy_till; i++){
-      
-      //copy_to[i].x = copy_from[i].x;
-      //copy_to[i].y = copy_from[i].y;
-      
-      copy_to[i].position = copy_from[i].position;
-      
-      copy_to[i].followup.x = copy_from[i].followup.x;
-      copy_to[i].followup.y = copy_from[i].followup.y;
-    
-    }
-    
-  }*/
 };
 
 class snake_food{
@@ -191,11 +156,7 @@ class snake_food{
     } while (exit_loop == false);
     
     eaten = false;
-    
-    //shape.setPosition(position);
-    //temp = shape.getPosition();
-    //cout<<endl<<temp.x<<" | "<<temp.y<<endl;
-    
+      
     shape.setPosition(position);
     shape.setFillColor(color);
     f_window.draw(shape);
@@ -203,59 +164,6 @@ class snake_food{
 };
 
 // Out of Class, Member function declaritions - To resolve Circular Dependencies
-
-// DEPRICATED
-/*void snake::transform(int f_max_size){ // Will resize the snake_part array
-  int temp_max_size = snake::max_size; // Backup for further use of resizing
-  
-  max_size = f_max_size; // Override with provided values
-  
-  
-  // If part[] array is empty or uninitialized, no need of backing it up
-  if (part == nullptr){ 
-    part = new snake_part[max_size];
-    return; //exits method
-  }
-  //====================================================================
-  
-  
-  //creating temp array of same size as part
-  snake_part* temp_part = new snake_part[temp_max_size];
- 
-  // Deep Copying object of snake_part* part[] array into temp_part[]
-  
-      // Technically a backup of part[] array
-  snake_part::deep_copy(part, temp_part, temp_max_size);
-  
-  // ===============================================      
-  
-  // After taking backup of part[] array, we will delete it
-  // to itialize a new part[] array with a overridden size
-  
-  delete[] part;
-  part = new snake_part[max_size];// Initialized with new max_size
-
-  //==============================================================
-  
-  
-  
-  // As we have resized the part[] array.. We also need to give it
-  // back its data that we took the backup of
-  
-  snake_part::deep_copy(temp_part, part, temp_max_size); // It will copy till max size of temp_part
-
-  //==============================================================
-  
-  
-  // So now our part array is completely resized and transformed... 
-  // so we ned to delete the backup .. freeing memory
-  
-  delete[] temp_part;
-  
-  //===============================================================
-  
-
-} */
 
 void snake::draw_snake(sf::RenderWindow& f_window){
   sf::Color temp = snake_part::shape.getFillColor();
@@ -273,9 +181,7 @@ void snake::draw_snake(sf::RenderWindow& f_window){
 }
 
 snake::~snake(){
-  //DEPRICATE
-  //delete[] part;
-  //cout<<endl<<"Snake Deleted"<<endl;
+  
 }
 
 void snake::init(){
@@ -356,39 +262,14 @@ int main(){
     sf::Time delta_time = clock.restart();
     snk.move_timer += delta_time.asSeconds();
     
-    //Just in case the snake gets larger than its part array.. we resize the
-    // array using custom made array resizing function snake::transform(int new_size) 
-    //if (snk.size > snk.get_max_size() - 4) snk.transform(snk.get_max_size() + 200); 
-    // increments the part array by 200
-    
     if (window_event.type == sf::Event::KeyPressed){
       if (window_event.key.code == sf::Keyboard::Down && snk.dir != snake::direction::up){
-        //cout<<endl<<"Key pressed: Down"<<endl;
-        //snk.is_down = true;
-        //snk.is_up = false;
-        //snk.is_left = false;
-        //snk.is_right = false;
         snk.dir = snake::direction::down;
       } else if (window_event.key.code == sf::Keyboard::Up && snk.dir != snake::direction::down){
-        //cout<<endl<<"Key pressed: Up"<<endl;
-        //snk.is_down = false;
-        //snk.is_up = true;
-        //snk.is_left = false;
-        //snk.is_right = false;
         snk.dir = snake::direction::up;
       } else if (window_event.key.code == sf::Keyboard::Left && snk.dir != snake::direction::right){
-        //cout<<endl<<"Key pressed: Left"<<endl;
-        //snk.is_down = false;
-        //snk.is_up = false;
-        //snk.is_left = true;
-        //snk.is_right = false;
         snk.dir = snake::direction::left;
       } else if (window_event.key.code == sf::Keyboard::Right && snk.dir != snake::direction::left){
-        //cout<<endl<<"Key pressed: Right"<<endl;
-        //snk.is_down = false;
-        //snk.is_up = false;
-        //snk.is_left = false;
-        //snk.is_right = true;
         snk.dir = snake::direction::right;
       }  
     }
