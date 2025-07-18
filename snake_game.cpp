@@ -1,4 +1,4 @@
-//#include <iostream> // only  for debugging
+#include <iostream> // only  for debugging
 #include <cstdlib>  
 #include <vector>
 #include <string>
@@ -19,18 +19,10 @@ class game_window{
   int max_x = 0; // (Usually width - 1)
   int max_y = 0; // (Usually height - 1)
   sf::Font font;
-  
   std::string title = "";
   
   game_window(){}
-  
-  game_window(std::string f_title, int f_width, int f_height){
-    width = f_width;
-    height = f_height;
-    title = f_title;
-  }
-  
-    
+  game_window(int f_width, int f_height, std::string);
 };
 
 class snake { // Will hold Snake information  
@@ -49,48 +41,20 @@ class snake { // Will hold Snake information
   
   
   snake(){}
-  
+  snake(int f_size, int f_speed);
+
+  inline void stop();
+    
   void draw_snake(sf::RenderWindow& f_window);
-  
-  inline void stop() {
-    dir = snake::direction::stop;
-  }
-  
   void init();
+  void update_speed(float f_speed); //updates speed live
+  void plus_size(int f_size);
+  void minus_size(int f_size);  
+  void set_size(const int& f_size); // is slow and has overheads
   
-  void update_speed(float f_speed){ //updates speed live
-    speed = f_speed;
-    move_interval= 1.0f / speed;
-  }
-  
-  void plus_size(int f_size){
-    for (int i = 0; i < f_size; i++){
-      part.emplace_back();
-    }
-  }
-  
-  void minus_size(int f_size){
-    if (f_size > part.size()) f_size = part.size(); // bounds checking
-    for (int i = 0; i < f_size; i++){
-      part.pop_back();
-    }
-  }
-  
-  void set_size(const int& f_size){ // is slow and has overheads
-    if (f_size > part.size())
-      plus_size(f_size - part.size());
-      
-    else if (f_size < part.size())
-      minus_size(part.size() - f_size);
-  }
-  
-  inline int get_size(){
-    return part.size();
-  }
+  inline int get_size();
   
   ~snake();
-  
-  protected:
 
 };
 
@@ -99,13 +63,10 @@ class snake_part{
   //int x = 0; // Coordinates of current blocks
   //int y = 0;
   
-  
   sf::Vector2f position;
   sf::Vector2f followup;  //Coordinates of previous blocks
   
-  
   static sf::RectangleShape shape;
-  
 };
 
 class snake_food{
@@ -119,51 +80,30 @@ class snake_food{
   
   bool eaten = false;
   
-  snake_food(){
-    shape.setRadius(10.f);
-    color = sf::Color::Red;
-  }
+  snake_food();
   
-  void put_food(snake& f_snake, sf::RenderWindow& f_window){
-
-    if (!eaten) {
-      f_window.draw(shape);
-      return;
-    }
-
-    int ran_x;
-    int ran_y;
-    
-    bool exit_loop = false;
-    
-    do{
-      
-      ran_x = rand() % 35; //(game_window::max_x / 20)
-      ran_y = rand() % 25; //(game_window::max_y / 20)
-      
-      position.x = ran_x * 20; 
-      position.y = ran_y * 20;
-      
-      // make sure food dosent come on snake body
-      for (int i = 0; i < f_snake.get_size(); i++){
-        // make the logic for not adding food on snake, snake body/part
-        if (position == f_snake.part[i].position) {
-          exit_loop = false;
-          break;
-        } 
-        exit_loop = true;
-      }
-    } while (exit_loop == false);
-    
-    eaten = false;
-      
-    shape.setPosition(position);
-    shape.setFillColor(color);
-    f_window.draw(shape);
-  }
+  void put_food(snake& f_snake, sf::RenderWindow& f_window);
 };
 
 // Out of Class, Member function declaritions - To resolve Circular Dependencies
+
+game_window::game_window(int f_width, int f_height, std::string f_title){
+    width = f_width;
+    height = f_height;
+    max_x = f_width - 1;
+    max_y = f_height - 1;
+    title = f_title;
+}
+
+
+snake::snake(int f_size, int f_speed){
+  set_size(f_size);
+  update_speed(f_speed);
+}
+
+inline void snake::stop() {
+  dir = snake::direction::stop;
+}
 
 void snake::draw_snake(sf::RenderWindow& f_window){
   sf::Color temp = snake_part::shape.getFillColor();
@@ -180,10 +120,6 @@ void snake::draw_snake(sf::RenderWindow& f_window){
   }
 }
 
-snake::~snake(){
-  
-}
-
 void snake::init(){
   
   update_speed(speed);
@@ -195,6 +131,82 @@ void snake::init(){
     part[i].position.y = 0.f;
   }
 }
+
+void snake::update_speed(float f_speed){ //updates speed live
+  speed = f_speed;
+  move_interval= 1.0f / speed;
+}
+
+void snake::plus_size(int f_size){
+  for (int i = 0; i < f_size; i++){
+    part.emplace_back();
+  }
+}
+
+void snake::minus_size(int f_size){
+  if (f_size > part.size()) f_size = part.size(); // bounds checking
+  for (int i = 0; i < f_size; i++){
+    part.pop_back();
+  }
+}
+
+void snake::set_size(const int& f_size){ // is slow and has overheads
+  if (f_size > part.size())
+    plus_size(f_size - part.size());
+    
+  else if (f_size < part.size())
+    minus_size(part.size() - f_size);
+}
+
+inline int snake::get_size(){
+  return part.size();
+}
+
+snake::~snake(){}
+
+snake_food::snake_food(){
+  shape.setRadius(10.f);
+  color = sf::Color::Red;
+}
+
+void snake_food::put_food(snake& f_snake, sf::RenderWindow& f_window){
+
+  if (!eaten) {
+    f_window.draw(shape);
+    return;
+  }
+  int ran_x;
+  int ran_y;
+  
+  bool exit_loop = false;
+  
+  do{
+    
+    ran_x = rand() % 35; //(game_window::max_x / 20)
+    ran_y = rand() % 25; //(game_window::max_y / 20)
+    
+    position.x = ran_x * 20; 
+    position.y = ran_y * 20;
+    
+    // make sure food dosent come on snake body
+    for (int i = 0; i < f_snake.get_size(); i++){
+      // make the logic for not adding food on snake, snake body/part
+      if (position == f_snake.part[i].position) {
+        exit_loop = false;
+        break;
+      }
+      exit_loop = true;
+      std::cout<<"Evaluating the food position "<<i<<"\n"; 
+    }
+  } while (exit_loop == false);
+  
+  eaten = false;
+    
+  shape.setPosition(position);
+  shape.setFillColor(color);
+  f_window.draw(shape);
+}
+
 // ============================
 
 
@@ -206,19 +218,9 @@ sf::RectangleShape snake_part::shape;
 int main(){
   srand(time(0));
   
-  game_window g_window;
-  g_window.width = 700;
-  g_window.height = 500;
-  g_window.max_x = g_window.width - 1;
-  g_window.max_y = g_window.height - 1;
-  g_window.title = "Snake Game - @skshazkamil";
+  game_window g_window(700, 500, "Snake Game - @skshazkamil");
   
-  game_window game_over;
-  game_over.width = 200;
-  game_over.height = 100;
-  game_over.max_x = game_over.width - 1;
-  game_over.max_y = game_over.height - 1;
-  game_over.title = "Game Over";
+  game_window game_over(200, 100, "GameOver");
   
   snake snk;
   snk.update_speed(5);
