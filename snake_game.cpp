@@ -38,6 +38,21 @@ class game_window{
   void set_font(sf::Font& f_font);
 };
 
+class snake_part{
+  public:
+  //int x = 0; // Coordinates of current blocks
+  //int y = 0;
+  
+  sf::Vector2f position;
+  sf::Vector2f followup;  //Coordinates of previous blocks
+  
+  static sf::RectangleShape shape;
+  snake_part(){}
+  snake_part(sf::Vector2f pos);
+  snake_part(int x, int y);
+
+};
+
 class snake { // Will hold Snake information  
   public:
   
@@ -79,16 +94,7 @@ class snake { // Will hold Snake information
 
 };
 
-class snake_part{
-  public:
-  //int x = 0; // Coordinates of current blocks
-  //int y = 0;
-  
-  sf::Vector2f position;
-  sf::Vector2f followup;  //Coordinates of previous blocks
-  
-  static sf::RectangleShape shape;
-};
+
 
 class snake_food{
   public:
@@ -130,11 +136,22 @@ void game_window::set_font(sf::Font& f_font){
   }
 }
 
+snake_part::snake_part(sf::Vector2f pos){
+  position = pos;
+}
+
+snake_part::snake_part(int x, int y){
+  position.x = x;
+  position.y = y;
+}
+
 snake::snake(int f_size, int f_speed){
   stop();
   set_size(f_size);
   update_speed(f_speed);
 }
+
+
 
 inline void snake::stop() {
   dir = snake::direction::stop;
@@ -165,6 +182,7 @@ void snake::init(){
     part[i].position.x = (20 * (get_size() - i));
     part[i].position.y = 0.f;
   }
+
 }
 
 void snake::update_speed(float f_speed){ //updates speed live
@@ -173,8 +191,11 @@ void snake::update_speed(float f_speed){ //updates speed live
 }
 
 void snake::plus_size(int f_size){
+  int temp = part.size() - 1;
   for (int i = 0; i < f_size; i++){
     part.emplace_back();
+    part[part.size() - 1].position = part[get_size() - 2].position;
+    //part[part.size() - 1].position.y = part[get_size() - 2].position.y;
   }
 }
 
