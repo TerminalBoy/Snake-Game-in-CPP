@@ -5,6 +5,7 @@
 #include <array>
 #include <SFML/Graphics.hpp>
 
+
 // Forward Declarations
 class snake;
 
@@ -16,7 +17,9 @@ class snake_food;
 
 class game_window{
   public:
- 
+  
+  enum class display_state{on, off};
+  
   int width = 0; // Width and Height of game screen 
   int height = 0;
   int max_x = 0; // (Usually width - 1)
@@ -30,7 +33,7 @@ class game_window{
   std::string title = "";
   
   game_window(){}
-  game_window(int f_width, int f_height, std::string);
+  game_window(int f_width, int f_height, std::string, display_state f_display_state = display_state::on);
   
   void set_font(sf::Font& f_font);
 };
@@ -63,18 +66,14 @@ class snake { // Will hold Snake information
   void set_size(const int& f_size); // is slow and has overheads
   
   inline int get_size() const; //read only
-  
-  template<game_window& ft_window>
-  void process_input();
-  
-  template<game_window& ft_window>
-  void process_movement();
+
+  void process_input(game_window& ft_window);
+  void process_movement(game_window& ft_window);
   
   template <int N>
-  void process_eating(snake_food* (&f_food)[N]);
+  void process_eating(snake_food* const (&f_food)[N]);
   
-  template <game_window& main_ft_window>
-  void process_self_collision(game_window& ft_window);
+  void process_self_collision(game_window& main_ft_window, game_window& ft_window);
   
   ~snake();
 
@@ -111,7 +110,7 @@ class snake_food{
 
 // Out of Class, Member function declaritions - To resolve Circular Dependencies
 
-game_window::game_window(int f_width, int f_height, std::string f_title){
+game_window::game_window(int f_width, int f_height, std::string f_title, display_state f_display_state){
     width = f_width;
     height = f_height;
     max_x = f_width - 1;
@@ -120,7 +119,9 @@ game_window::game_window(int f_width, int f_height, std::string f_title){
     font.loadFromFile("Figtree-VariableFont_wght.ttf");
     text.setFont(font);
     delta_time = clock.restart();
-    sf_window.create(sf::VideoMode(width, height),title);
+    
+    if (f_display_state == display_state::on)
+      sf_window.create(sf::VideoMode(f_width, f_height), f_title);
 }
 
 void game_window::set_font(sf::Font& f_font){
@@ -196,8 +197,8 @@ inline int snake::get_size() const{
   return part.size();
 }
 
-template<game_window& ft_window>
-void snake::process_input(){
+
+void snake::process_input(game_window& ft_window){
   if (ft_window.event.type == sf::Event::KeyPressed){
     if (ft_window.event.key.code == sf::Keyboard::Down && dir != snake::direction::up){
       dir = snake::direction::down;
@@ -211,8 +212,8 @@ void snake::process_input(){
   }
 }
 
-template<game_window& ft_window>
-void snake::process_movement() {
+
+void snake::process_movement(game_window& ft_window) {
 
     
     // Update Followup
@@ -271,7 +272,7 @@ void snake::process_movement() {
 }
 
 template <int N>
-void snake::process_eating(snake_food* (&f_food)[N]){
+void snake::process_eating(snake_food* const (&f_food)[N]){
 // to detect if food is eaten or not 
   for(int __i = 0; __i < N; __i++){
     if (part[0].position == f_food[__i]->shape.getPosition()){
@@ -285,8 +286,7 @@ void snake::process_eating(snake_food* (&f_food)[N]){
   }
 }
 
-template <game_window& main_ft_window>
-void snake::process_self_collision(game_window& ft_window){
+void snake::process_self_collision(game_window& main_ft_window, game_window& ft_window){
 
   // to detect self collision
   for (int i = 1; i < get_size(); i++){ // Check Self Collision
@@ -306,6 +306,8 @@ void snake::process_self_collision(game_window& ft_window){
       ft_window.text.setFillColor(sf::Color::White);
       ft_window.text.setPosition(10,10);
       ft_window.sf_window.draw(ft_window.text);
+      
+      ft_window.sf_window.create(sf::VideoMode(ft_window.width, ft_window.height), ft_window.title);
       ft_window.sf_window.display();
       
       while(ft_window.sf_window.isOpen()){
@@ -409,7 +411,7 @@ int main(){
   
   game_window g_window(700, 500, "Snake Game - @skshazkamil");
   
-  game_window game_over(200, 100, "GameOver");
+  game_window game_over(200, 100, "GameOver", game_window::display_state::off);
   
   snake snk;
   snk.update_speed(5);
@@ -436,14 +438,15 @@ int main(){
     g_window.delta_time = g_window.clock.restart();
     snk.move_timer += g_window.delta_time.asSeconds();
   
-    snk.process_input<g_window>();
+    snk.process_input(g_window);
+
     
     if (snk.move_timer >= snk.move_interval){ //Frames as per snake speed
       snk.move_timer -= snk.move_interval;
-      
-      snk.process_movement<g_window>();
-      snk.process_eating<g_window>();
-      snk.process_self_collision<g_window>(game_over);
+        
+      snk.process_movement(g_window);
+      snk.process_eating({&food});
+      snk.process_self_collision(g_window, game_over);
     }
     
     //Main window =======
