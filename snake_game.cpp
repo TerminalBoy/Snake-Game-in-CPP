@@ -75,8 +75,12 @@ class snake { // Will hold Snake information
 
   inline void stop();
     
-  void draw_snake(sf::RenderWindow& f_window);
-  void init();
+  template <int N>
+  static void draw_snake(snake* const (&snakes)[N], sf::RenderWindow& f_window, sf::Color f_head_color, sf::Color f_body_color);
+  
+  template <int N>
+  static void init(snake* const (&snakes)[N]);
+  
   void update_speed(float f_speed); //updates speed live
   void plus_size(int f_size);
   void minus_size(int f_size);  
@@ -159,32 +163,36 @@ inline void snake::stop() {
   dir = snake::direction::stop;
 }
 
-void snake::draw_snake(sf::RenderWindow& f_window){
-  sf::Color temp = snake_part::shape.getFillColor();
+template <int N>
+void snake::draw_snake(snake* const (&snakes)[N], sf::RenderWindow& f_window, sf::Color f_head_color, sf::Color f_body_color){
+  //sf::Color temp = snake_part::shape.getFillColor();
+  for (int __i = 0; __i < N; __i++){
   
-  snake_part::shape.setPosition(part[0].position);
-  snake_part::shape.setFillColor(sf::Color::Black);
-  f_window.draw(snake_part::shape);
-  
-  snake_part::shape.setFillColor(temp);
-  
-  for (int i = 1; i < get_size(); i++){
-    snake_part::shape.setPosition(part[i].position);
+    snake_part::shape.setPosition(snakes[__i]->part[0].position);
+    snake_part::shape.setFillColor(f_head_color);
     f_window.draw(snake_part::shape);
+    
+    snake_part::shape.setFillColor(f_body_color);
+    
+    for (int i = 1; i < snakes[__i]->get_size(); i++){
+      snake_part::shape.setPosition(snakes[__i]->part[i].position);
+      f_window.draw(snake_part::shape);
+    }
   }
 }
 
-void snake::init(){
-  
-  update_speed(speed);
-  
-  set_size(5);
-  
-  for (int i = 0; i < get_size(); i++){
-    part[i].position.x = (20 * (get_size() - i));
-    part[i].position.y = 0.f;
+template <int N>
+void snake::init(snake* const (&snakes)[N]){
+  for (int __i = 0; __i < N; __i++){
+    snakes[__i]->update_speed(snakes[__i]->speed);
+    
+    snakes[__i]->set_size(5);
+    
+    for (int i = 0; i < snakes[__i]->get_size(); i++){
+      snakes[__i]->part[i].position.x = (20 * (snakes[__i]->get_size() - i));
+      snakes[__i]->part[i].position.y = 0.f + (20 * __i);
+    }
   }
-
 }
 
 void snake::update_speed(float f_speed){ //updates speed live
@@ -362,7 +370,7 @@ void snake::process_self_collision(game_window& main_ft_window, game_window& ft_
             if (ft_window.event.key.code == sf::Keyboard::R){
               set_size(5);
               update_speed(5);
-              init();
+              snake::init({this});
               i = get_size() - 1; // to end the for loop
               ft_window.sf_window.close();
             }
@@ -451,7 +459,12 @@ int main(){
   snake snk;
   snk.update_speed(5);
   snk.set_size(5);
-    
+  
+  snake snk2;
+  snk2.update_speed(5);
+  snk2.set_size(5);
+  
+
   
   snake_part::shape = sf::RectangleShape(sf::Vector2f(20.f, 20.f));  
   snake_part::shape.setFillColor(sf::Color(150, 150, 150));
@@ -462,8 +475,9 @@ int main(){
   //food.position.x = 400;
   //food.position.y = 400;
 
-  snk.init(); //initialize snake
-  
+  snake::init({&snk, &snk2}); //initialize snake
+  snk.stop();
+  snk2.stop();
   while(g_window.sf_window.isOpen()){
     
     while (g_window.sf_window.pollEvent(g_window.event)){
@@ -480,16 +494,26 @@ int main(){
       snk.move_timer -= snk.move_interval;
     
     
-      snk.process_input(g_window, snake::input_style::wasd);
+      snk.process_input(g_window, snake::input_style::arrow);
+      snk2.process_input(g_window, snake::input_style::wasd);
+      
       snk.process_movement(g_window);
+      snk2.process_movement(g_window);
+      
       snk.process_eating({&food});
+      snk2.process_eating({&food});
+      
       snk.process_self_collision(g_window, game_over);
+      snk2.process_self_collision(g_window, game_over);
+    
     }
     
     //Main window =======
     g_window.sf_window.clear(sf::Color::White);
     food.put_food({snk}, g_window.sf_window);
-    snk.draw_snake(g_window.sf_window);
+    snake::draw_snake({&snk}, g_window.sf_window, sf::Color(100, 200, 100), sf::Color(50, 250, 50));
+    snake::draw_snake({&snk2}, g_window.sf_window, sf::Color(100, 100, 200), sf::Color(50, 50, 250));
+    
     g_window.sf_window.display();    
   } // Main loop ends
   return 0;
