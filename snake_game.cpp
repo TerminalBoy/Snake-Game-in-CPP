@@ -223,8 +223,6 @@ inline int snake::get_size() const{
 
 void snake::process_input(game_window& ft_window, input_style f_input_style){
   
-  ft_window.sf_window.pollEvent(ft_window.event);
-  
   sf::Keyboard::Key target_up = sf::Keyboard::Up;
   sf::Keyboard::Key target_down = sf::Keyboard::Down;
   sf::Keyboard::Key target_left = sf::Keyboard::Left;
@@ -237,17 +235,16 @@ void snake::process_input(game_window& ft_window, input_style f_input_style){
     target_right = sf::Keyboard::D;
   }
   
-  if (ft_window.event.type == sf::Event::KeyPressed){
-    if (ft_window.event.key.code == target_down && dir != snake::direction::up){
-      dir = snake::direction::down;
-    } else if (ft_window.event.key.code == target_up && dir != snake::direction::down){
-      dir = snake::direction::up;
-    } else if (ft_window.event.key.code == target_left && dir != snake::direction::right){
-      dir = snake::direction::left;
-    } else if (ft_window.event.key.code == target_right && dir != snake::direction::left){
-      dir = snake::direction::right;
-    }  
-  }
+  if (sf::Keyboard::isKeyPressed(target_down) && dir != snake::direction::up){
+    dir = snake::direction::down;
+  } else if (sf::Keyboard::isKeyPressed(target_up) && dir != snake::direction::down){
+    dir = snake::direction::up;
+  } else if (sf::Keyboard::isKeyPressed(target_left) && dir != snake::direction::right){
+    dir = snake::direction::left;
+  } else if (sf::Keyboard::isKeyPressed(target_right) && dir != snake::direction::left){
+    dir = snake::direction::right;
+  }  
+
 }
 
 
@@ -476,12 +473,14 @@ int main(){
     g_window.delta_time = g_window.clock.restart();
     snk.move_timer += g_window.delta_time.asSeconds();
   
-    snk.process_input(g_window, snake::input_style::arrow);
+    
 
     
     if (snk.move_timer >= snk.move_interval){ //Frames as per snake speed
       snk.move_timer -= snk.move_interval;
-        
+    
+    
+      snk.process_input(g_window, snake::input_style::wasd);
       snk.process_movement(g_window);
       snk.process_eating({&food});
       snk.process_self_collision(g_window, game_over);
