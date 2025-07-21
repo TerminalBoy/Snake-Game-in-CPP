@@ -56,6 +56,8 @@ class snake_part{
 class snake { // Will hold Snake information  
   public:
   
+  enum class input_style {arrow, wasd};
+  
   float speed = 5.0f;
   //float move_interval= 1.0f / speed;
   float move_interval;
@@ -82,7 +84,7 @@ class snake { // Will hold Snake information
   
   inline int get_size() const; //read only
 
-  void process_input(game_window& ft_window);
+  void process_input(game_window& ft_window, input_style f_input_style = input_style::arrow);
   void process_movement(game_window& ft_window);
   
   template <int N>
@@ -219,15 +221,30 @@ inline int snake::get_size() const{
 }
 
 
-void snake::process_input(game_window& ft_window){
+void snake::process_input(game_window& ft_window, input_style f_input_style){
+  
+  ft_window.sf_window.pollEvent(ft_window.event);
+  
+  sf::Keyboard::Key target_up = sf::Keyboard::Up;
+  sf::Keyboard::Key target_down = sf::Keyboard::Down;
+  sf::Keyboard::Key target_left = sf::Keyboard::Left;
+  sf::Keyboard::Key target_right = sf::Keyboard::Right;
+  
+  if (f_input_style == input_style::wasd){
+    target_up = sf::Keyboard::W;
+    target_down = sf::Keyboard::S;
+    target_left = sf::Keyboard::A;
+    target_right = sf::Keyboard::D;
+  }
+  
   if (ft_window.event.type == sf::Event::KeyPressed){
-    if (ft_window.event.key.code == sf::Keyboard::Down && dir != snake::direction::up){
+    if (ft_window.event.key.code == target_down && dir != snake::direction::up){
       dir = snake::direction::down;
-    } else if (ft_window.event.key.code == sf::Keyboard::Up && dir != snake::direction::down){
+    } else if (ft_window.event.key.code == target_up && dir != snake::direction::down){
       dir = snake::direction::up;
-    } else if (ft_window.event.key.code == sf::Keyboard::Left && dir != snake::direction::right){
+    } else if (ft_window.event.key.code == target_left && dir != snake::direction::right){
       dir = snake::direction::left;
-    } else if (ft_window.event.key.code == sf::Keyboard::Right && dir != snake::direction::left){
+    } else if (ft_window.event.key.code == target_right && dir != snake::direction::left){
       dir = snake::direction::right;
     }  
   }
@@ -459,7 +476,7 @@ int main(){
     g_window.delta_time = g_window.clock.restart();
     snk.move_timer += g_window.delta_time.asSeconds();
   
-    snk.process_input(g_window);
+    snk.process_input(g_window, snake::input_style::arrow);
 
     
     if (snk.move_timer >= snk.move_interval){ //Frames as per snake speed
