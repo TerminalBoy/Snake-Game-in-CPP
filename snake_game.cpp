@@ -27,7 +27,7 @@ class game_window{
   sf::Font font;
   sf::Text text;
   sf::RenderWindow sf_window;
-  sf::Event event;
+  sf::Event event{};
   sf::Clock clock; // for frame control
   sf::Time delta_time;
   std::string title = "";
@@ -60,17 +60,17 @@ class snake { // Will hold Snake information
   
   float speed = 5.0f;
   //float move_interval= 1.0f / speed;
-  float move_interval;
+  float move_interval = 0;
   float move_timer = 0.0f;
   
   enum class direction {up, down, left, right, stop};
   
-  direction dir;
+  direction dir = direction::stop;
  
   std::vector<snake_part> part;
   
   
-  snake(){}
+  snake() : dir(direction::stop) {}
   snake(int f_size, int f_speed);
 
   inline void stop();
@@ -94,7 +94,11 @@ class snake { // Will hold Snake information
   template <int N>
   void process_eating(snake_food* const (&f_food)[N]);
   
+  void process_gameover(game_window& main_ft_window, game_window& ft_window);
+
   void process_self_collision(game_window& main_ft_window, game_window& ft_window);
+  
+  static void process_other_collision(snake* const (&snakes)[], game_window& main_ft_window, game_window& ft_window);
   
   ~snake();
 
@@ -329,64 +333,89 @@ void snake::process_eating(snake_food* const (&f_food)[N]){
   }
 }
 
+void snake::process_gameover(game_window& main_ft_window, game_window& ft_window){
+  
+
+  stop();
+
+  //sf::RenderWindow game_over_window (sf::VideoMode(ft_window.width, ft_window.height), ft_window.title);
+
+  //window.clear(sf::Color::White);
+
+
+  ft_window.text.setFont(ft_window.font);
+  ft_window.text.setString("Game Over !! \n Press R to Restart \n Press X to Exit");
+  ft_window.text.setCharacterSize(20);
+  ft_window.text.setFillColor(sf::Color::White);
+  ft_window.text.setPosition(10, 10);
+  ft_window.sf_window.draw(ft_window.text);
+
+  ft_window.sf_window.create(sf::VideoMode(ft_window.width, ft_window.height), ft_window.title);
+  ft_window.sf_window.display();
+
+  while (ft_window.sf_window.isOpen()) {
+    while (ft_window.sf_window.pollEvent(ft_window.event)) {
+
+      if (ft_window.event.type == sf::Event::Closed) {
+        ft_window.sf_window.close();
+        main_ft_window.sf_window.close();
+      }
+
+
+      if (ft_window.event.type == sf::Event::KeyPressed) {
+        if (ft_window.event.key.code == sf::Keyboard::X) {
+          ft_window.sf_window.close();
+          main_ft_window.sf_window.close();
+        }
+        if (ft_window.event.key.code == sf::Keyboard::R) {
+          set_size(5);
+          update_speed(5);
+          snake::init({ this });
+          ft_window.sf_window.close();
+        }
+      }
+
+      ft_window.sf_window.clear(sf::Color::Black);
+      ft_window.sf_window.draw(ft_window.text);
+      ft_window.sf_window.display();
+
+    } //while (game_over_window.pollEvent(game_over_event))
+  } //while(game_over_window.isOpen())
+ 
+}
+
 void snake::process_self_collision(game_window& main_ft_window, game_window& ft_window){
 
   // to detect self collision
   for (int i = 1; i < get_size(); i++){ // Check Self Collision
-    if (part[0].position == part[i].position){
-      
-      //cout<<endl <<"GAME OVER" <<endl;
-      stop();
-      
-      //sf::RenderWindow game_over_window (sf::VideoMode(ft_window.width, ft_window.height), ft_window.title);
-      
-      //window.clear(sf::Color::White);
-      
-      
-      ft_window.text.setFont(ft_window.font);
-      ft_window.text.setString("Game Over !! \n Press R to Restart \n Press X to Exit");
-      ft_window.text.setCharacterSize(20);
-      ft_window.text.setFillColor(sf::Color::White);
-      ft_window.text.setPosition(10,10);
-      ft_window.sf_window.draw(ft_window.text);
-      
-      ft_window.sf_window.create(sf::VideoMode(ft_window.width, ft_window.height), ft_window.title);
-      ft_window.sf_window.display();
-      
-      while(ft_window.sf_window.isOpen()){
-        while (ft_window.sf_window.pollEvent(ft_window.event)){
-        
-          if (ft_window.event.type == sf::Event::Closed) {
-            ft_window.sf_window.close();
-            main_ft_window.sf_window.close();
-          }
-        
-        
-          if (ft_window.event.type == sf::Event::KeyPressed){
-            if (ft_window.event.key.code == sf::Keyboard::X){
-              ft_window.sf_window.close();
-              main_ft_window.sf_window.close();
-            }
-            if (ft_window.event.key.code == sf::Keyboard::R){
-              set_size(5);
-              update_speed(5);
-              snake::init({this});
-              i = get_size() - 1; // to end the for loop
-              ft_window.sf_window.close();
-            }
-          }
-          
-          ft_window.sf_window.clear(sf::Color::Black);
-          ft_window.sf_window.draw(ft_window.text);
-          ft_window.sf_window.display();
-          
-        } //while (game_over_window.pollEvent(game_over_event))
-      } //while(game_over_window.isOpen())
-    } //if (snk.part[0].position == snk.part[i].position)
+    if (part[0].position == part[i].position) {
+      process_gameover(main_ft_window, ft_window);
+      break;
+    }
   
   }// for loop ends
 
 }
+
+
+void snake::process_other_collision(snake* const (&snakes)[], game_window& main_ft_window, game_window& ft_window) {
+  
+  for (int i = 0; i < snakes[0]->get_size(); i++) {
+    if (snakes[0]->part[0].position == snakes[1]->part[i].position){
+      std::cout << "Collision";
+      snake::process_other_collision({ snakes[0], snakes[1] }, main_ft_window, ft_window);
+    }
+  }
+
+  for (int i = 0; i < snakes[1]->get_size(); i++) {
+    if (snakes[1]->part[0].position == snakes[0]->part[i].position){
+      std::cout << "Collision";
+      snake::process_other_collision({ snakes[0], snakes[1] }, main_ft_window, ft_window);
+    }
+  }
+
+}
+
 snake::~snake(){}
 
 snake_food::snake_food(){
@@ -505,6 +534,8 @@ int main(){
       
       snk.process_self_collision(g_window, game_over);
       snk2.process_self_collision(g_window, game_over);
+
+      snake::process_other_collision({ &snk, &snk2 }, g_window, game_over);
     
     }
     
