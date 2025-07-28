@@ -80,6 +80,8 @@ class snake { // Will hold Snake information
   
   template <int N>
   static void init(snake* const (&snakes)[N]);
+    
+  void init();
   
   void update_speed(float f_speed); //updates speed live
   void plus_size(int f_size);
@@ -94,7 +96,8 @@ class snake { // Will hold Snake information
   template <int N>
   void process_eating(snake_food* const (&f_food)[N]);
   
-  void process_gameover(game_window& main_ft_window, game_window& ft_window);
+  template <int N>
+  static void process_gameover(snake* const (&snakes)[N], game_window& main_ft_window, game_window& ft_window);
 
   void process_self_collision(game_window& main_ft_window, game_window& ft_window);
   
@@ -197,6 +200,10 @@ void snake::init(snake* const (&snakes)[N]){
       snakes[__i]->part[i].position.y = 0.f + (20 * __i);
     }
   }
+}
+
+inline void snake::init(){
+  snake::init({this});
 }
 
 void snake::update_speed(float f_speed){ //updates speed live
@@ -333,10 +340,12 @@ void snake::process_eating(snake_food* const (&f_food)[N]){
   }
 }
 
-void snake::process_gameover(game_window& main_ft_window, game_window& ft_window){
+template <int N>
+void snake::process_gameover(snake* const (&snakes)[N], game_window& main_ft_window, game_window& ft_window){
   
 
-  stop();
+  snakes[0]->stop();
+  snakes[1]->stop();
 
   //sf::RenderWindow game_over_window (sf::VideoMode(ft_window.width, ft_window.height), ft_window.title);
 
@@ -368,9 +377,13 @@ void snake::process_gameover(game_window& main_ft_window, game_window& ft_window
           main_ft_window.sf_window.close();
         }
         if (ft_window.event.key.code == sf::Keyboard::R) {
-          set_size(5);
-          update_speed(5);
-          snake::init({ this });
+          for (int __i = 0; __i < N; __i++){
+          
+            snakes[__i]->set_size(5);
+            snakes[__i]->update_speed(5);
+          }
+          snake::init({ snakes[0], snakes[1] });
+          
           ft_window.sf_window.close();
         }
       }
@@ -389,7 +402,7 @@ void snake::process_self_collision(game_window& main_ft_window, game_window& ft_
   // to detect self collision
   for (int i = 1; i < get_size(); i++){ // Check Self Collision
     if (part[0].position == part[i].position) {
-      process_gameover(main_ft_window, ft_window);
+      process_gameover({ this }, main_ft_window, ft_window);
       break;
     }
   
@@ -403,14 +416,14 @@ void snake::process_other_collision(snake* const (&snakes)[], game_window& main_
   for (int i = 0; i < snakes[0]->get_size(); i++) {
     if (snakes[0]->part[0].position == snakes[1]->part[i].position){
       std::cout << "Collision";
-      snake::process_other_collision({ snakes[0], snakes[1] }, main_ft_window, ft_window);
+      snake::process_gameover({ snakes[0], snakes[1] }, main_ft_window, ft_window);
     }
   }
 
   for (int i = 0; i < snakes[1]->get_size(); i++) {
     if (snakes[1]->part[0].position == snakes[0]->part[i].position){
       std::cout << "Collision";
-      snake::process_other_collision({ snakes[0], snakes[1] }, main_ft_window, ft_window);
+      snake::process_gameover({ snakes[0], snakes[1] }, main_ft_window, ft_window);
     }
   }
 
