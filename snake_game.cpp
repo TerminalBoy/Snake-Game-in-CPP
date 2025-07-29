@@ -6,6 +6,7 @@
 #include <SFML/Graphics.hpp>
 
 
+
 // Forward Declarations
 class snake;
 
@@ -54,6 +55,7 @@ class snake_part{
 };
 
 class snake { // Will hold Snake information  
+  
   public:
   
   enum class input_style {arrow, wasd};
@@ -63,6 +65,8 @@ class snake { // Will hold Snake information
   float move_interval = 0;
   float move_timer = 0.0f;
   
+  int size = 0;
+  static int snake_count;
   enum class direction {up, down, left, right, stop};
   
   direction dir = direction::stop;
@@ -70,16 +74,13 @@ class snake { // Will hold Snake information
   std::vector<snake_part> part;
   
   
-  snake() : dir(direction::stop) {}
+  snake();
   snake(int f_size, int f_speed);
 
   inline void stop();
     
-  template <int N>
-  static void draw_snake(snake* const (&snakes)[N], sf::RenderWindow& f_window, sf::Color f_head_color, sf::Color f_body_color);
+  void draw_snake(sf::RenderWindow& f_window, sf::Color f_head_color, sf::Color f_body_color);
   
-  template <int N>
-  static void init(snake* const (&snakes)[N]);
     
   void init();
   
@@ -112,7 +113,7 @@ class snake { // Will hold Snake information
 class snake_food{
   public:
   
-  float radius;
+  float radius = 10.f;
   sf::Color color;
 
   sf::Vector2f position;
@@ -127,6 +128,15 @@ class snake_food{
   void put_food(const snake (&f_snake)[N], sf::RenderWindow& f_window);
 };
 
+
+
+
+// Static Var Declarations
+
+int snake::snake_count = 0;
+
+// -------------------------------------------
+
 // Out of Class, Member function declaritions - To resolve Circular Dependencies
 
 game_window::game_window(int f_width, int f_height, std::string f_title, display_state f_display_state){
@@ -135,7 +145,7 @@ game_window::game_window(int f_width, int f_height, std::string f_title, display
     max_x = f_width - 1;
     max_y = f_height - 1;
     title = f_title;
-    font.loadFromFile("Figtree-VariableFont_wght.ttf");
+    font.loadFromFile("D:\C++\Projects\Snake - Game - in - CPP\Figtree - VariableFont_wght.ttf");
     text.setFont(font);
     delta_time = clock.restart();
     
@@ -158,6 +168,11 @@ snake_part::snake_part(int x, int y){
   position.y = y;
 }
 
+snake::snake() 
+: dir(direction::stop) {
+  stop();
+}
+
 snake::snake(int f_size, int f_speed){
   stop();
   set_size(f_size);
@@ -170,41 +185,37 @@ inline void snake::stop() {
   dir = snake::direction::stop;
 }
 
-template <int N>
-void snake::draw_snake(snake* const (&snakes)[N], sf::RenderWindow& f_window, sf::Color f_head_color, sf::Color f_body_color){
+void snake::draw_snake(sf::RenderWindow& f_window, sf::Color f_head_color, sf::Color f_body_color){
   //sf::Color temp = snake_part::shape.getFillColor();
-  for (int __i = 0; __i < N; __i++){
+ 
   
-    snake_part::shape.setPosition(snakes[__i]->part[0].position);
-    snake_part::shape.setFillColor(f_head_color);
-    f_window.draw(snake_part::shape);
+  snake_part::shape.setPosition(part[0].position);
+  snake_part::shape.setFillColor(f_head_color);
+  f_window.draw(snake_part::shape);
     
-    snake_part::shape.setFillColor(f_body_color);
+  snake_part::shape.setFillColor(f_body_color);
     
-    for (int i = 1; i < snakes[__i]->get_size(); i++){
-      snake_part::shape.setPosition(snakes[__i]->part[i].position);
+  for (int i = 1; i < get_size(); i++){
+      snake_part::shape.setPosition(part[i].position);
       f_window.draw(snake_part::shape);
-    }
   }
+  
 }
 
-template <int N>
-void snake::init(snake* const (&snakes)[N]){
-  for (int __i = 0; __i < N; __i++){
-    snakes[__i]->update_speed(snakes[__i]->speed);
-    
-    snakes[__i]->set_size(5);
-    
-    for (int i = 0; i < snakes[__i]->get_size(); i++){
-      snakes[__i]->part[i].position.x = (20 * (snakes[__i]->get_size() - i));
-      snakes[__i]->part[i].position.y = 0.f + (20 * __i);
-    }
+
+void snake::init(){
+
+
+  set_size(size);
+  update_speed(speed);
+  
+  for (int i = 0; i < get_size(); i++){
+    part[i].position.x = (20 * (get_size() - i));
+    part[i].position.y = 0.f + (20 * snake::snake_count);
   }
+  snake::snake_count += 1;
 }
 
-inline void snake::init(){
-  snake::init({this});
-}
 
 void snake::update_speed(float f_speed){ //updates speed live
   speed = f_speed;
@@ -233,9 +244,12 @@ void snake::set_size(const int& f_size){ // is slow and has overheads
     
   else if (f_size < part.size())
     minus_size(part.size() - f_size);
+
+  size = get_size();
 }
 
-inline int snake::get_size() const{
+inline
+int snake::get_size() const{
   return part.size();
 }
 
@@ -344,9 +358,6 @@ template <int N>
 void snake::process_gameover(snake* const (&snakes)[N], game_window& main_ft_window, game_window& ft_window){
   
 
-  snakes[0]->stop();
-  snakes[1]->stop();
-
   //sf::RenderWindow game_over_window (sf::VideoMode(ft_window.width, ft_window.height), ft_window.title);
 
   //window.clear(sf::Color::White);
@@ -378,11 +389,10 @@ void snake::process_gameover(snake* const (&snakes)[N], game_window& main_ft_win
         }
         if (ft_window.event.key.code == sf::Keyboard::R) {
           for (int __i = 0; __i < N; __i++){
-          
-            snakes[__i]->set_size(5);
-            snakes[__i]->update_speed(5);
+            snakes[__i]->size = 6;
+            snakes[__i]->init();
           }
-          snake::init({ snakes[0], snakes[1] });
+          
           
           ft_window.sf_window.close();
         }
@@ -417,6 +427,7 @@ void snake::process_other_collision(snake* const (&snakes)[], game_window& main_
     if (snakes[0]->part[0].position == snakes[1]->part[i].position){
       std::cout << "Collision";
       snake::process_gameover({ snakes[0], snakes[1] }, main_ft_window, ft_window);
+      return;
     }
   }
 
@@ -424,6 +435,7 @@ void snake::process_other_collision(snake* const (&snakes)[], game_window& main_
     if (snakes[1]->part[0].position == snakes[0]->part[i].position){
       std::cout << "Collision";
       snake::process_gameover({ snakes[0], snakes[1] }, main_ft_window, ft_window);
+      return;
     }
   }
 
@@ -431,7 +443,7 @@ void snake::process_other_collision(snake* const (&snakes)[], game_window& main_
 
 snake::~snake(){}
 
-snake_food::snake_food(){
+snake_food::snake_food() {
   shape.setRadius(10.f);
   color = sf::Color::Red;
   eaten = true;
@@ -517,7 +529,10 @@ int main(){
   //food.position.x = 400;
   //food.position.y = 400;
 
-  snake::init({&snk, &snk2}); //initialize snake
+  
+  snk.init();
+  snk2.init();
+
   snk.stop();
   snk2.stop();
   while(g_window.sf_window.isOpen()){
@@ -555,8 +570,9 @@ int main(){
     //Main window =======
     g_window.sf_window.clear(sf::Color::White);
     food.put_food({snk}, g_window.sf_window);
-    snake::draw_snake({&snk}, g_window.sf_window, sf::Color(100, 200, 100), sf::Color(50, 250, 50));
-    snake::draw_snake({&snk2}, g_window.sf_window, sf::Color(100, 100, 200), sf::Color(50, 50, 250));
+
+    snk.draw_snake(g_window.sf_window, sf::Color(100, 200, 100), sf::Color(50, 250, 50));
+    snk2.draw_snake(g_window.sf_window, sf::Color(100, 100, 200), sf::Color(50, 50, 250));
     
     g_window.sf_window.display();    
   } // Main loop ends
