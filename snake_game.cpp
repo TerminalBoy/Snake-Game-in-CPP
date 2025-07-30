@@ -213,6 +213,7 @@ void snake::init(float f_size, float f_speed){
     part[i].position.y = 0.f + (20 * snake::snake_count);
   }
   snake::snake_count += 1;
+  dir = snake::direction::stop;
 }
 
 
@@ -225,7 +226,8 @@ void snake::plus_size(int f_size){
   int temp = part.size() - 1;
   for (int i = 0; i < f_size; i++){
     part.emplace_back();
-    part[part.size() - 1].position = part[get_size() - 2].position;
+    if (part.size() > 1)
+      part[part.size() - 1].position = part[get_size() - 2].position;
     //part[part.size() - 1].position.y = part[get_size() - 2].position.y;
   }
 }
@@ -355,7 +357,7 @@ void snake::process_eating(snake_food* const (&f_food)[N]){
 template <int N>
 void snake::process_gameover(snake* const (&snakes)[N], game_window& main_ft_window, game_window& ft_window){
   
-
+  snake::snake_count = 0;
   //sf::RenderWindow game_over_window (sf::VideoMode(ft_window.width, ft_window.height), ft_window.title);
 
   //window.clear(sf::Color::White);
@@ -416,7 +418,7 @@ void snake::process_self_collision(game_window& main_ft_window, game_window& ft_
 
 void snake::process_other_collision(snake* const (&snakes)[], game_window& main_ft_window, game_window& ft_window) {
   
-  for (int i = 0; i < snakes[0]->get_size(); i++) {
+  for (int i = 0; i < snakes[1]->get_size(); i++) {
     if (snakes[0]->part[0].position == snakes[1]->part[i].position){
       std::cout << "Collision";
       snake::process_gameover({ snakes[0], snakes[1] }, main_ft_window, ft_window);
@@ -424,7 +426,7 @@ void snake::process_other_collision(snake* const (&snakes)[], game_window& main_
     }
   }
 
-  for (int i = 0; i < snakes[1]->get_size(); i++) {
+  for (int i = 0; i < snakes[0]->get_size(); i++) {
     if (snakes[1]->part[0].position == snakes[0]->part[i].position){
       std::cout << "Collision";
       snake::process_gameover({ snakes[0], snakes[1] }, main_ft_window, ft_window);
@@ -514,7 +516,7 @@ int main(){
   snake_food food;
 
   snk.init(5, 5);
-  snk2.init(5, 10);
+  snk2.init(5, 5);
 
   snk.stop();
   snk2.stop();
