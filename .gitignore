@@ -1,2 +1,9 @@
 a.out
 .vscode
+.vs
+test.cpp
+VS Snake-Game-in-CPP/** 
+!VS Snake-Game-in-CPP/ 
+!VS Snake-Game-in-CPP/**/*.sln 
+!VS Snake-Game-in-CPP/**/*.vcxproj 
+!VS Snake-Game-in-CPP/**/*.vcxproj.filters 
