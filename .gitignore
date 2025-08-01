@@ -2,8 +2,17 @@ a.out
 .vscode
 .vs
 test.cpp
-VS Snake-Game-in-CPP/** 
-!VS Snake-Game-in-CPP/ 
-!VS Snake-Game-in-CPP/**/*.sln 
-!VS Snake-Game-in-CPP/**/*.vcxproj 
-!VS Snake-Game-in-CPP/**/*.vcxproj.filters 
+
+# Ignore the folder at root and all its contents and subfolders
+/VS Snake-Game-in-CPP/** 
+
+# Unignore the folder at root
+!/VS Snake-Game-in-CPP/
+
+# Unignore all the subdirectories in the folder 
+!/VS Snake-Game-in-CPP/**/
+
+# Unignore all the VS files at any level
+!/VS Snake-Game-in-CPP/**/*.sln 
+!/VS Snake-Game-in-CPP/**/*.vcxproj 
+!/VS Snake-Game-in-CPP/**/*.vcxproj.filters 
