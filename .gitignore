@@ -2,6 +2,7 @@ a.out
 .vscode
 .vs
 test.cpp
+temp.cpp
 
 # Ignore the folder at root and all its contents and subfolders
 /VS Snake-Game-in-CPP/** 
