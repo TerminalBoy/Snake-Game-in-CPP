@@ -98,11 +98,11 @@ class snake { // Will hold Snake information
   void process_eating(snake_food* const (&f_food)[N]);
   
   template <int N>
-  static void process_gameover(snake* const (&snakes)[N], game_window& main_ft_window, game_window& ft_window);
+  static void process_gameover(snake* const (&snakes)[N], game_window& ft_window);
 
-  void process_self_collision(game_window& main_ft_window, game_window& ft_window);
+  void process_self_collision(game_window& ft_window);
   
-  static void process_other_collision(snake* const (&snakes)[], game_window& main_ft_window, game_window& ft_window);
+  static void process_other_collision(snake* const (&snakes)[], game_window& ft_window);
   
   ~snake();
 
@@ -145,12 +145,13 @@ game_window::game_window(int f_width, int f_height, std::string f_title, display
     max_x = f_width - 1;
     max_y = f_height - 1;
     title = f_title;
-    font.loadFromFile("D:\C++\Projects\Snake - Game - in - CPP\Figtree - VariableFont_wght.ttf");
+    font.loadFromFile("Figtree-VariableFont_wght.ttf");
     text.setFont(font);
     delta_time = clock.restart();
     
     if (f_display_state == display_state::on)
       sf_window.create(sf::VideoMode(f_width, f_height), f_title);
+    sf_window.setFramerateLimit(60);
 }
 
 void game_window::set_font(sf::Font& f_font){
@@ -209,7 +210,7 @@ void snake::init(float f_size, float f_speed){
   update_speed(f_speed);
   
   for (int i = 0; i < get_size(); i++){
-    part[i].position.x = (20 * (get_size() - i));
+    part[i].position.x = (20 * (get_size() - i - 1));
     part[i].position.y = 0.f + (20 * snake::snake_count);
   }
   snake::snake_count += 1;
@@ -355,7 +356,7 @@ void snake::process_eating(snake_food* const (&f_food)[N]){
 }
 
 template <int N>
-void snake::process_gameover(snake* const (&snakes)[N], game_window& main_ft_window, game_window& ft_window){
+void snake::process_gameover(snake* const (&snakes)[N], game_window& ft_window){
   
   snake::snake_count = 0;
   //sf::RenderWindow game_over_window (sf::VideoMode(ft_window.width, ft_window.height), ft_window.title);
@@ -366,48 +367,47 @@ void snake::process_gameover(snake* const (&snakes)[N], game_window& main_ft_win
   ft_window.text.setFont(ft_window.font);
   ft_window.text.setString("Game Over !! \n Press R to Restart \n Press X to Exit");
   ft_window.text.setCharacterSize(20);
-  ft_window.text.setFillColor(sf::Color::White);
+  ft_window.text.setFillColor(sf::Color::Black);
   ft_window.text.setPosition(10, 10);
+  ft_window.sf_window.clear();
   ft_window.sf_window.draw(ft_window.text);
 
-  ft_window.sf_window.create(sf::VideoMode(ft_window.width, ft_window.height), ft_window.title);
-  ft_window.sf_window.display();
+  //ft_window.sf_window.create(sf::VideoMode(ft_window.width, ft_window.height), ft_window.title);
+  //ft_window.sf_window.display();
 
   while (ft_window.sf_window.isOpen()) {
     while (ft_window.sf_window.pollEvent(ft_window.event)) {
 
       if (ft_window.event.type == sf::Event::Closed) {
         ft_window.sf_window.close();
-        main_ft_window.sf_window.close();
       }
-
-
-      if (ft_window.event.type == sf::Event::KeyPressed) {
-        if (ft_window.event.key.code == sf::Keyboard::X) {
-          ft_window.sf_window.close();
-          main_ft_window.sf_window.close();
-        }
-        if (ft_window.event.key.code == sf::Keyboard::R) {
-          for (int __i = 0; __i < N; __i++) snakes[__i]->init(5, 5);
-          ft_window.sf_window.close();
-        }
-      }
-
-      ft_window.sf_window.clear(sf::Color::Black);
-      ft_window.sf_window.draw(ft_window.text);
-      ft_window.sf_window.display();
-
     } //while (game_over_window.pollEvent(game_over_event))
+
+  
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::X)) {
+      ft_window.sf_window.close();
+    }
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::R)) {
+      for (int __i = 0; __i < N; __i++) snakes[__i]->init(5, 5);
+      return;
+    }
+    
+
+    ft_window.sf_window.clear(sf::Color::White);
+    ft_window.sf_window.draw(ft_window.text);
+    ft_window.sf_window.display();
+
+     
   } //while(game_over_window.isOpen())
  
 }
 
-void snake::process_self_collision(game_window& main_ft_window, game_window& ft_window){
+void snake::process_self_collision(game_window& ft_window){
 
   // to detect self collision
   for (int i = 1; i < get_size(); i++){ // Check Self Collision
     if (part[0].position == part[i].position) {
-      process_gameover({ this }, main_ft_window, ft_window);
+      process_gameover({ this }, ft_window);
       break;
     }
   
@@ -416,12 +416,12 @@ void snake::process_self_collision(game_window& main_ft_window, game_window& ft_
 }
 
 
-void snake::process_other_collision(snake* const (&snakes)[], game_window& main_ft_window, game_window& ft_window) {
+void snake::process_other_collision(snake* const (&snakes)[], game_window& ft_window) {
   
   for (int i = 0; i < snakes[1]->get_size(); i++) {
     if (snakes[0]->part[0].position == snakes[1]->part[i].position){
       std::cout << "Collision";
-      snake::process_gameover({ snakes[0], snakes[1] }, main_ft_window, ft_window);
+      snake::process_gameover({ snakes[0], snakes[1] }, ft_window);
       return;
     }
   }
@@ -429,7 +429,7 @@ void snake::process_other_collision(snake* const (&snakes)[], game_window& main_
   for (int i = 0; i < snakes[0]->get_size(); i++) {
     if (snakes[1]->part[0].position == snakes[0]->part[i].position){
       std::cout << "Collision";
-      snake::process_gameover({ snakes[0], snakes[1] }, main_ft_window, ft_window);
+      snake::process_gameover({ snakes[0], snakes[1] }, ft_window);
       return;
     }
   }
@@ -521,7 +521,7 @@ int main(){
   snk.stop();
   snk2.stop();
 
-  g_window.sf_window.setFramerateLimit(60);
+
 
   while(g_window.sf_window.isOpen()){
     
@@ -549,10 +549,10 @@ int main(){
       snk.process_eating({&food});
       //snk2.process_eating({&food});
       
-      snk.process_self_collision(g_window, game_over);
+      snk.process_self_collision(g_window);
       //snk2.process_self_collision(g_window, game_over);
 
-      snake::process_other_collision({ &snk, &snk2 }, g_window, game_over);
+      snake::process_other_collision({ &snk, &snk2 }, g_window);
     
     }
 
@@ -570,9 +570,9 @@ int main(){
       snk2.process_eating({ &food });
 
       //snk.process_self_collision(g_window, game_over);
-      snk2.process_self_collision(g_window, game_over);
+      snk2.process_self_collision(g_window);
 
-      snake::process_other_collision({ &snk, &snk2 }, g_window, game_over);
+      snake::process_other_collision({ &snk, &snk2 }, g_window);
 
     }
     
