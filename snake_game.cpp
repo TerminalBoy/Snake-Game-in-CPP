@@ -37,6 +37,7 @@ class game_window{
   game_window(int f_width, int f_height, std::string, display_state f_display_state = display_state::on);
   
   void set_font(sf::Font& f_font);
+  inline void fps_handler_reset();
 };
 
 class snake_part{
@@ -160,6 +161,10 @@ void game_window::set_font(sf::Font& f_font){
   }
 }
 
+inline void game_window::fps_handler_reset(){
+  delta_time = clock.restart();
+}
+
 snake_part::snake_part(sf::Vector2f pos){
   position = pos;
 }
@@ -215,6 +220,7 @@ void snake::init(float f_size, float f_speed){
   }
   snake::snake_count += 1;
   dir = snake::direction::stop;
+  move_timer = 0;
 }
 
 
@@ -357,7 +363,7 @@ void snake::process_eating(snake_food* const (&f_food)[N]){
 
 template <int N>
 void snake::process_gameover(snake* const (&snakes)[N], game_window& ft_window){
-  
+  ft_window.fps_handler_reset();
   snake::snake_count = 0;
   //sf::RenderWindow game_over_window (sf::VideoMode(ft_window.width, ft_window.height), ft_window.title);
 
@@ -399,7 +405,7 @@ void snake::process_gameover(snake* const (&snakes)[N], game_window& ft_window){
 
      
   } //while(game_over_window.isOpen())
- 
+  
 }
 
 void snake::process_self_collision(game_window& ft_window){
