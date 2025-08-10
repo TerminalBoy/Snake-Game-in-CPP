@@ -369,17 +369,15 @@ void snake::process_gameover(snake* const (&snakes)[N], game_window& ft_window){
 
   //window.clear(sf::Color::White);
 
+  sf::Texture tex;
+  tex.loadFromFile("GameOver.png");
+  sf::Sprite spr(tex);
 
-  ft_window.text.setFont(ft_window.font);
-  ft_window.text.setString("Game Over !! \n Press R to Restart \n Press X to Exit");
-  ft_window.text.setCharacterSize(20);
-  ft_window.text.setFillColor(sf::Color::Black);
-  ft_window.text.setPosition(10, 10);
-  ft_window.sf_window.clear();
-  ft_window.sf_window.draw(ft_window.text);
-
+  spr.setPosition((ft_window.width / 2.f) - (tex.getSize().x / 2.f), (ft_window.height / 2.f) - (tex.getSize().y / 2.f));
+ 
   //ft_window.sf_window.create(sf::VideoMode(ft_window.width, ft_window.height), ft_window.title);
   //ft_window.sf_window.display();
+ 
 
   while (ft_window.sf_window.isOpen()) {
     while (ft_window.sf_window.pollEvent(ft_window.event)) {
@@ -400,7 +398,7 @@ void snake::process_gameover(snake* const (&snakes)[N], game_window& ft_window){
     
 
     ft_window.sf_window.clear(sf::Color::White);
-    ft_window.sf_window.draw(ft_window.text);
+    ft_window.sf_window.draw(spr);
     ft_window.sf_window.display();
 
      
