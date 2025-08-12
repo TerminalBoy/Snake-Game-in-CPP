@@ -370,7 +370,7 @@ void snake::process_gameover(snake* const (&snakes)[N], game_window& ft_window){
   //window.clear(sf::Color::White);
 
   sf::Texture tex;
-  tex.loadFromFile("GameOver.png");
+  tex.loadFromFile("Assets/GameOver.png");
   sf::Sprite spr(tex);
 
   spr.setPosition((ft_window.width / 2.f) - (tex.getSize().x / 2.f), (ft_window.height / 2.f) - (tex.getSize().y / 2.f));
