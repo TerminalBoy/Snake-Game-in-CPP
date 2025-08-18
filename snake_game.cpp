@@ -14,13 +14,14 @@ class snake_part;
 
 class snake_food;
 
+
 // Class Declarations
 
 class game_window{
   public:
   
   enum class display_state{on, off};
-  
+  enum class text_align{left, right};
   int width = 0; // Width and Height of game screen 
   int height = 0;
   int max_x = 0; // (Usually width - 1)
@@ -38,6 +39,9 @@ class game_window{
   
   void set_font(sf::Font& f_font);
   inline void fps_handler_reset();
+
+  static void text_aligner(sf::Text& ft_text, game_window& ft_window, text_align f_arg = text_align::left);
+
 };
 
 class snake_part{
@@ -66,8 +70,10 @@ class snake { // Will hold Snake information
   float move_interval = 0;
   float move_timer = 0.0f;
   
+  int score = 0;
 
-  static int snake_count;
+  static int count;
+  sf::Text text;
   enum class direction {up, down, left, right, stop};
   
   direction dir = direction::stop;
@@ -105,6 +111,10 @@ class snake { // Will hold Snake information
   
   static void process_other_collision(snake* const (&snakes)[], game_window& ft_window);
   
+  template <int N>
+  static void display_score(snake* const (&snakes)[N], game_window& ft_window);
+  
+
   ~snake();
 
 };
@@ -134,7 +144,7 @@ class snake_food{
 
 // Static Var Declarations
 
-int snake::snake_count = 0;
+int snake::count = 0;
 
 // -------------------------------------------
 
@@ -151,7 +161,7 @@ game_window::game_window(int f_width, int f_height, std::string f_title, display
     delta_time = clock.restart();
     
     if (f_display_state == display_state::on)
-      sf_window.create(sf::VideoMode(f_width, f_height), f_title);
+      sf_window.create(sf::VideoMode(f_width, f_height + 20), f_title);
     sf_window.setFramerateLimit(60);
 }
 
@@ -163,6 +173,13 @@ void game_window::set_font(sf::Font& f_font){
 
 inline void game_window::fps_handler_reset(){
   delta_time = clock.restart();
+}
+
+void game_window::text_aligner(sf::Text &ft_text, game_window &ft_window, text_align f_arg) {
+  sf::FloatRect bounds = ft_text.getLocalBounds();
+  if (f_arg == text_align::right) {
+    ft_text.setPosition(ft_window.width - (bounds.width + bounds.left), ft_text.getPosition().y);
+  }
 }
 
 snake_part::snake_part(sf::Vector2f pos){
@@ -216,9 +233,9 @@ void snake::init(float f_size, float f_speed){
   
   for (int i = 0; i < get_size(); i++){
     part[i].position.x = (20 * (get_size() - i - 1));
-    part[i].position.y = 0.f + (20 * snake::snake_count);
+    part[i].position.y = 0.f + (20 * snake::count);
   }
-  snake::snake_count += 1;
+  snake::count += 1;
   dir = snake::direction::stop;
   move_timer = 0;
 }
@@ -356,6 +373,7 @@ void snake::process_eating(snake_food* const (&f_food)[N]){
       
       //if (snk.size > snk.get_max_size() - 2) snk.transform(snk.get_max_size() + 100);
       plus_size(1);
+      score++;
       // Debug //cout<<endl<<"Food Eated"<<endl;
     }  
   }
@@ -364,7 +382,7 @@ void snake::process_eating(snake_food* const (&f_food)[N]){
 template <int N>
 void snake::process_gameover(snake* const (&snakes)[N], game_window& ft_window){
   ft_window.fps_handler_reset();
-  snake::snake_count = 0;
+  snake::count = 0;
   //sf::RenderWindow game_over_window (sf::VideoMode(ft_window.width, ft_window.height), ft_window.title);
 
   //window.clear(sf::Color::White);
@@ -438,6 +456,25 @@ void snake::process_other_collision(snake* const (&snakes)[], game_window& ft_wi
     }
   }
 
+}
+
+template <int N>
+void snake::display_score(snake* const (&snakes)[N], game_window& ft_window) {
+  ft_window.text.setCharacterSize(18);
+  ft_window.text.setFont(ft_window.font);
+  ft_window.text.setFillColor(sf::Color::Black);
+
+  ft_window.text.setString("Snake 1 score : " + std::to_string(snakes[0]->score));
+  ft_window.text.setPosition(50, ft_window.height);
+  ft_window.sf_window.draw(ft_window.text);
+  if (N == 2) {
+    ft_window.text.setString("Snake 2 score : " + std::to_string(snakes[1]->score));
+    ft_window.text.setPosition(0, ft_window.height);
+    game_window::text_aligner(ft_window.text, ft_window, game_window::text_align::right);
+    ft_window.text.setPosition(ft_window.text.getPosition().x - 50, ft_window.text.getPosition().y);
+    ft_window.sf_window.draw(ft_window.text);
+  }
+  
 }
 
 snake::~snake(){}
@@ -583,6 +620,8 @@ int main(){
     //Main window =======
     g_window.sf_window.clear(sf::Color::White);
     food.put_food({snk}, g_window.sf_window);
+
+    snake::display_score({ &snk, &snk2 }, g_window);
 
     snk.draw_snake(g_window.sf_window, sf::Color(100, 200, 100), sf::Color(50, 250, 50));
     snk2.draw_snake(g_window.sf_window, sf::Color(100, 100, 200), sf::Color(50, 50, 250));
