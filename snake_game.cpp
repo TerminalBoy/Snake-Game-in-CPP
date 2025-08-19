@@ -230,7 +230,7 @@ void snake::init(float f_size, float f_speed){
 
   set_size(f_size);
   update_speed(f_speed);
-  
+  score = 0;
   for (int i = 0; i < get_size(); i++){
     part[i].position.x = (20 * (get_size() - i - 1));
     part[i].position.y = 0.f + (20 * snake::count);
@@ -384,7 +384,7 @@ void snake::process_gameover(snake* const (&snakes)[N], game_window& ft_window){
   ft_window.fps_handler_reset();
   snake::count = 0;
   //sf::RenderWindow game_over_window (sf::VideoMode(ft_window.width, ft_window.height), ft_window.title);
-
+  
   //window.clear(sf::Color::White);
 
   sf::Texture tex;
