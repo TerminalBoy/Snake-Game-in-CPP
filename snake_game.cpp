@@ -4,6 +4,39 @@
 #include <string>
 #include <array>
 #include <SFML/Graphics.hpp>
+#include <../../Custom_ECS_libs/memory.cpp>
+//        ^^^^^^ remove these if youre not using Visual Studio
+
+
+// ==============================================================================================================
+
+// ===================================== ECS : enitity component system =========================================
+// 
+// why use it instead of OOP style
+// : it provides better cache usage, by utilizing contigious memory and making the compiler easy to apply SIMD
+// optimizations, lesser missed cache, lesser ram fetchinmg = overall better perfomance
+// And its very easy to scale than the classic OOP structure
+
+// Entities :
+// its is just an id referrinmg to a game object (not the OOP one), like snake, snake bodypart, window, food
+
+// Components :
+// this the data of game objects stored in struct or arrays (SoA), acessed by specifying the entitiy id
+
+// System :
+// this is the actual logic of the game, stored in functions
+
+// ==============================================================================================================
+
+
+
+// trying ECS
+
+struct position {
+  //std::vector<float> x, y;
+  myecs::d_array<float> z;
+};
+
 
 
 
