@@ -4,13 +4,13 @@
 #include <string>
 #include <array>
 #include <SFML/Graphics.hpp>
-#include <../../Custom_ECS_libs/memory.cpp>
-//        ^^^^^^ remove these if youre not using Visual Studio
+#include <Custom_ECS_libs/memory.cpp>
+
 
 
 // ==============================================================================================================
 
-// ===================================== ECS : enitity component system =========================================
+// ECS : enitity component system 
 // 
 // why use it instead of OOP style
 // : it provides better cache usage, by utilizing contigious memory and making the compiler easy to apply SIMD
