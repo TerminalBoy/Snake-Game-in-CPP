@@ -4,7 +4,7 @@
 #include <string>
 #include <array>
 #include <SFML/Graphics.hpp>
-#include <Custom_ECS_libs/memory.cpp>
+//#include <Custom_ECS_libs/memory.cpp> // will test later
 
 
 
@@ -32,12 +32,55 @@
 
 // trying ECS
 
-struct position {
-  //std::vector<float> x, y;
-  myecs::d_array<float> z;
+// ENTITY :
+struct entity {
+  std::uint16_t id;
 };
 
 
+// COMPONENTS :
+struct position {
+  std::vector<float> x, y;
+};
+
+struct shape_size {
+  std::vector<float> width, height;
+};
+
+struct render_window {
+  std::vector<sf::RenderWindow> sf_window;
+};
+
+struct renderable {
+  std::vector<sf::Font> font;
+  std::vector<sf::Text> text;
+  static sf::RectangleShape shape;
+};
+
+struct meta_data {
+  std::vector<std::string> title;
+};
+
+struct fps_handler {
+  std::vector<sf::Clock> clock; // for frame control
+  std::vector<sf::Time> delta_time;
+};
+
+// SYSTEM :
+
+sf::RenderWindow& create_window(int f_width, int f_height, std::string f_title){
+  sf::RenderWindow ft_window(sf::VideoMode(f_width, f_height), f_title);
+  return ft_window;
+}
+
+//namespace ecs{
+
+
+
+
+
+
+//}
 
 
 // Forward Declarations
