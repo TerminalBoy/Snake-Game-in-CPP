@@ -43,13 +43,18 @@ struct position {
   std::vector<float> x, y;
 };
 
-struct shape_size {
+struct shape {
   std::vector<float> width, height;
+  std::vector<sf::Color> color;
+  std::vector<sf::RectangleShape> rectangle;
+  std::vector<sf::CircleShape> circle;
 };
 
 struct render_window {
   std::vector<sf::RenderWindow> sf_window;
 };
+
+/*
 
 struct renderable {
   std::vector<sf::Font> font;
@@ -65,6 +70,8 @@ struct fps_handler {
   std::vector<sf::Clock> clock; // for frame control
   std::vector<sf::Time> delta_time;
 };
+
+*/
 
 // SYSTEM :
 
