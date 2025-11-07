@@ -50,11 +50,12 @@ struct shape {
   std::vector<sf::CircleShape> circle;
 };
 
+/*
 struct render_window {
   std::vector<sf::RenderWindow> sf_window;
 };
 
-/*
+
 
 struct renderable {
   std::vector<sf::Font> font;
