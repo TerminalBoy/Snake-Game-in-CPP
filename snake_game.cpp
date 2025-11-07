@@ -4,7 +4,14 @@
 #include <string>
 #include <array>
 #include <SFML/Graphics.hpp>
-//#include <Custom_ECS_libs/memory.cpp> // will test later
+//#include <Custom_ECS_libs/memory.hpp>// will test later
+
+// only a temp solution until i create my own dynamic array
+
+namespace myecs {
+  template<typename T>
+  using d_array = std::vector<T>;
+}
 
 
 
@@ -40,14 +47,14 @@ struct entity {
 
 // COMPONENTS :
 struct position {
-  std::vector<float> x, y;
+  myecs::d_array<float> x, y;
 };
 
 struct shape {
-  std::vector<float> width, height;
-  std::vector<sf::Color> color;
-  std::vector<sf::RectangleShape> rectangle;
-  std::vector<sf::CircleShape> circle;
+  myecs::d_array<float> width, height;
+  myecs::d_array<sf::Color> color;
+  myecs::d_array<sf::RectangleShape> rectangle;
+  myecs::d_array<sf::CircleShape> circle;
 };
 
 /*
@@ -75,6 +82,11 @@ struct fps_handler {
 */
 
 // SYSTEM :
+
+void create_entity() {
+
+}
+
 
 sf::RenderWindow& create_window(int f_width, int f_height, std::string f_title){
   sf::RenderWindow ft_window(sf::VideoMode(f_width, f_height), f_title);
