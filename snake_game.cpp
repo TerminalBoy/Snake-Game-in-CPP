@@ -14,8 +14,8 @@ namespace myecs {
   template<typename T>
   using d_array = std::vector<T>;
 
-  template<typename T>
-  using unordered_map = std::unordered_map<T>;
+  template<typename T, typename Y = T>
+  using unordered_map = std::unordered_map<T, Y>;
 
 }
 
@@ -53,6 +53,7 @@ namespace myecs {
 using entity = std::uint16_t;
 entity GLOBAL_ENTITY_COUNTER = 0;
 
+myecs::unordered_map<entity, entity> ent_comp_bridge;
 
 // COMPONENTS :
 struct position {
@@ -100,6 +101,36 @@ struct fps_handler {
 */
 
 // SYSTEM :
+
+// state managers
+enum class position_state { on, off };
+namespace shape_state {
+enum class shape_type { circle, rectangle };
+enum class color_state { on, off };
+}
+
+
+position* position_component = new position;
+shape* shape_component = new shape;
+
+entity create_entity(position_state f_position_state, shape_state::shape_type f_shape_type,
+                     shape_state::color_state f_shape_colour_state ){
+  
+  if (f_position_state == position_state::on) {
+    position_component->x.push_back(0);
+    position_component->y.push_back(0);
+  }
+  if (f_shape_type == shape_state::shape_type::rectangle) {
+    shape_component->rectangle.emplace_back();
+  } 
+  else if (f_shape_type == shape_state::shape_type::circle) {
+    shape_component->circle.emplace_back();
+  }
+
+
+}
+
+
 
 
 
