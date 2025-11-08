@@ -45,11 +45,13 @@ namespace myecs {
 
 // trying ECS
 
+
+
+
 // ENTITY :
 
 using entity = std::uint16_t;
-
-
+entity GLOBAL_ENTITY_COUNTER = 0;
 
 
 // COMPONENTS :
@@ -99,9 +101,6 @@ struct fps_handler {
 
 // SYSTEM :
 
-void create_entity() {
-
-}
 
 
 //namespace ecs{
