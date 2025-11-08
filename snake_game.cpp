@@ -3,14 +3,20 @@
 #include <vector>
 #include <string>
 #include <array>
+#include <unordered_map>
 #include <SFML/Graphics.hpp>
 //#include <Custom_ECS_libs/memory.hpp>// will test later
 
-// only a temp solution until i create my own dynamic array
+// only a temp solution until i create my own dynamic array and the other memory utils
 
 namespace myecs {
+
   template<typename T>
   using d_array = std::vector<T>;
+
+  template<typename T>
+  using unordered_map = std::unordered_map<T>;
+
 }
 
 
@@ -28,7 +34,7 @@ namespace myecs {
 // its is just an id referrinmg to a game object (not the OOP one), like snake, snake bodypart, window, food
 
 // Components :
-// this the data of game objects stored in struct or arrays (SoA), acessed by specifying the entitiy id
+// this the data of game objects stored in struct or arrays (SoA), acessed by specifying the entitiy id or by a internal Hash Map (unordered_map)
 
 // System :
 // this is the actual logic of the game, stored in functions
@@ -40,22 +46,32 @@ namespace myecs {
 // trying ECS
 
 // ENTITY :
-struct entity {
-  std::uint16_t id;
-};
+
+using entity = std::uint16_t;
+
+
 
 
 // COMPONENTS :
 struct position {
-  myecs::d_array<float> x, y;
+  myecs::d_array<float> x;
+  myecs::d_array<float> y;
 };
 
 struct shape {
-  myecs::d_array<float> width, height;
+  myecs::d_array<float> width;
+  myecs::d_array<float> height;
   myecs::d_array<sf::Color> color;
   myecs::d_array<sf::RectangleShape> rectangle;
   myecs::d_array<sf::CircleShape> circle;
 };
+
+
+// Indexes 
+
+myecs::d_array<entity> snake_segment_index;
+
+
 
 /*
 struct render_window {
@@ -87,11 +103,6 @@ void create_entity() {
 
 }
 
-
-sf::RenderWindow& create_window(int f_width, int f_height, std::string f_title){
-  sf::RenderWindow ft_window(sf::VideoMode(f_width, f_height), f_title);
-  return ft_window;
-}
 
 //namespace ecs{
 
