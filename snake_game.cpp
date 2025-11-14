@@ -69,6 +69,7 @@ struct shape {
   myecs::d_array<sf::CircleShape> circle;
 };
 
+// just a rough work, i know it needs some fixing / refactoring
 myecs::unordered_map<entity> position_x_bridge;
 myecs::unordered_map<entity> position_y_bridge;
 myecs::unordered_map<entity> shape_width_bridge;
@@ -137,6 +138,7 @@ entity create_entity(position_state f_position_state, shape_state::shape_type f_
     entity_component_linker(GLOBAL_ENTITY_COUNTER, position_component->x.size() - 1, position_x_bridge);
     entity_component_linker(GLOBAL_ENTITY_COUNTER, position_component->y.size() - 1, position_y_bridge);
   }
+
   if (f_shape_type == shape_state::shape_type::rectangle) {
     shape_component->rectangle.emplace_back();
     entity_component_linker(GLOBAL_ENTITY_COUNTER, shape_component->rectangle.size() - 1, shape_rectangle_bridge);
@@ -146,6 +148,18 @@ entity create_entity(position_state f_position_state, shape_state::shape_type f_
     entity_component_linker(GLOBAL_ENTITY_COUNTER, shape_component->circle.size() - 1, shape_circle_bridge);
   }
 
+  if (f_shape_colour_state == shape_state::color_state::on) {
+    shape_component->color.emplace_back();
+    shape_component->width.emplace_back();
+    shape_component->height.emplace_back();
+    entity_component_linker(GLOBAL_ENTITY_COUNTER, shape_component->color.size() - 1, shape_color_bridge);
+    entity_component_linker(GLOBAL_ENTITY_COUNTER, shape_component->width.size() - 1, shape_width_bridge);
+    entity_component_linker(GLOBAL_ENTITY_COUNTER, shape_component->height.size() - 1, shape_height_bridge);
+  }
+  
+  GLOBAL_ENTITY_COUNTER++;
+  
+  return GLOBAL_ENTITY_COUNTER - 1;
 
 }
 
