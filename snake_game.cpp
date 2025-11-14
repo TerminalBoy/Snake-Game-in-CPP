@@ -114,8 +114,11 @@ struct fps_handler {
 // state managers
 enum class position_state { on, off };
 namespace shape_state {
+
+enum class state { on, off };
 enum class shape_type { circle, rectangle };
 enum class color_state { on, off };
+
 }
 
 
@@ -127,8 +130,7 @@ inline void entity_component_linker(entity base_entity, entity corresponding_com
   f_bridge[base_entity] = corresponding_comp;
 }
 
-entity create_entity(position_state f_position_state, shape_state::shape_type f_shape_type,
-                     shape_state::color_state f_shape_colour_state ){
+entity create_entity(position_state f_position_state, shape_state::state f_shape_state ,shape_state::shape_type f_shape_type, shape_state::color_state f_shape_colour_state ){
   
   
 
@@ -139,16 +141,16 @@ entity create_entity(position_state f_position_state, shape_state::shape_type f_
     entity_component_linker(GLOBAL_ENTITY_COUNTER, position_component->y.size() - 1, position_y_bridge);
   }
 
-  if (f_shape_type == shape_state::shape_type::rectangle) {
+  if (f_shape_type == shape_state::shape_type::rectangle && f_shape_state == shape_state::state::on) {
     shape_component->rectangle.emplace_back();
     entity_component_linker(GLOBAL_ENTITY_COUNTER, shape_component->rectangle.size() - 1, shape_rectangle_bridge);
   } 
-  else if (f_shape_type == shape_state::shape_type::circle) {
+  else if (f_shape_type == shape_state::shape_type::circle && f_shape_state == shape_state::state::on) {
     shape_component->circle.emplace_back();
     entity_component_linker(GLOBAL_ENTITY_COUNTER, shape_component->circle.size() - 1, shape_circle_bridge);
   }
 
-  if (f_shape_colour_state == shape_state::color_state::on) {
+  if (f_shape_colour_state == shape_state::color_state::on && f_shape_state == shape_state::state::on) {
     shape_component->color.emplace_back();
     shape_component->width.emplace_back();
     shape_component->height.emplace_back();
@@ -176,6 +178,7 @@ entity create_entity(position_state f_position_state, shape_state::shape_type f_
 
 //}
 
+/*
 
 // Forward Declarations
 class snake;
@@ -800,3 +803,5 @@ int main(){
   } // Main loop ends
   return 0;
 }
+
+*/
