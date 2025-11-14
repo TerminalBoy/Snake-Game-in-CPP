@@ -167,17 +167,6 @@ entity create_entity(position_state f_position_state, shape_state::state f_shape
 
 
 
-
-
-//namespace ecs{
-
-
-
-
-
-
-//}
-
 /*
 
 // Forward Declarations

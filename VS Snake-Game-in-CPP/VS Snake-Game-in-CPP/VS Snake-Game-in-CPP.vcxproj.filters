@@ -18,5 +18,8 @@
     <ClCompile Include="..\..\snake_game.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Custom_ECS_libs\memory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
