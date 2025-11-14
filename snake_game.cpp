@@ -53,7 +53,7 @@ namespace myecs {
 using entity = std::uint16_t;
 entity GLOBAL_ENTITY_COUNTER = 0;
 
-myecs::unordered_map<entity, entity> ent_comp_bridge;
+
 
 // COMPONENTS :
 struct position {
@@ -68,6 +68,14 @@ struct shape {
   myecs::d_array<sf::RectangleShape> rectangle;
   myecs::d_array<sf::CircleShape> circle;
 };
+
+myecs::unordered_map<entity> position_x_bridge;
+myecs::unordered_map<entity> position_y_bridge;
+myecs::unordered_map<entity> shape_width_bridge;
+myecs::unordered_map<entity> shape_height_bridge;
+myecs::unordered_map<entity> shape_color_bridge;
+myecs::unordered_map<entity> shape_rectangle_bridge;
+myecs::unordered_map<entity> shape_circle_bridge;
 
 
 // Indexes 
@@ -113,18 +121,29 @@ enum class color_state { on, off };
 position* position_component = new position;
 shape* shape_component = new shape;
 
+inline void entity_component_linker(entity base_entity, entity corresponding_comp,
+                                    myecs::unordered_map<entity, entity>& f_bridge){
+  f_bridge[base_entity] = corresponding_comp;
+}
+
 entity create_entity(position_state f_position_state, shape_state::shape_type f_shape_type,
                      shape_state::color_state f_shape_colour_state ){
   
+  
+
   if (f_position_state == position_state::on) {
     position_component->x.push_back(0);
     position_component->y.push_back(0);
+    entity_component_linker(GLOBAL_ENTITY_COUNTER, position_component->x.size() - 1, position_x_bridge);
+    entity_component_linker(GLOBAL_ENTITY_COUNTER, position_component->y.size() - 1, position_y_bridge);
   }
   if (f_shape_type == shape_state::shape_type::rectangle) {
     shape_component->rectangle.emplace_back();
+    entity_component_linker(GLOBAL_ENTITY_COUNTER, shape_component->rectangle.size() - 1, shape_rectangle_bridge);
   } 
   else if (f_shape_type == shape_state::shape_type::circle) {
     shape_component->circle.emplace_back();
+    entity_component_linker(GLOBAL_ENTITY_COUNTER, shape_component->circle.size() - 1, shape_circle_bridge);
   }
 
 
