@@ -56,18 +56,28 @@ entity GLOBAL_ENTITY_COUNTER = 0;
 
 
 // COMPONENTS :
-struct position {
+struct position_comp {
   myecs::d_array<float> x;
   myecs::d_array<float> y;
 };
 
-struct shape {
+struct rectangle_comp {
   myecs::d_array<float> width;
   myecs::d_array<float> height;
-  myecs::d_array<sf::Color> color;
   myecs::d_array<sf::RectangleShape> rectangle;
+};
+
+struct circle_comp{
+  myecs::d_array<float> radius;
   myecs::d_array<sf::CircleShape> circle;
 };
+
+struct colour_comp {
+  myecs::d_array<sf::Color> color;
+};
+
+
+
 
 // just a rough work, i know it needs some fixing / refactoring
 myecs::unordered_map<entity> position_x_bridge;
