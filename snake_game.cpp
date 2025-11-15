@@ -56,27 +56,31 @@ entity GLOBAL_ENTITY_COUNTER = 0;
 
 
 // COMPONENTS :
-struct position_comp {
+
+namespace comp {
+
+
+struct position {
   myecs::d_array<float> x;
   myecs::d_array<float> y;
 };
 
-struct rectangle_comp {
+struct rectangle {
   myecs::d_array<float> width;
   myecs::d_array<float> height;
-  myecs::d_array<sf::RectangleShape> rectangle;
+  myecs::d_array<sf::RectangleShape> shape;
 };
 
-struct circle_comp{
+struct circle {
   myecs::d_array<float> radius;
-  myecs::d_array<sf::CircleShape> circle;
+  myecs::d_array<sf::CircleShape> shape;
 };
 
-struct colour_comp {
-  myecs::d_array<sf::Color> color;
+struct color {
+  myecs::d_array<sf::Color> value;
 };
 
-
+}
 
 
 // just a rough work, i know it needs some fixing / refactoring
@@ -132,8 +136,8 @@ enum class color_state { on, off };
 }
 
 
-position* position_component = new position;
-shape* shape_component = new shape;
+comp::position* position_component = new comp::position;
+comp::circle* shape_component = new comp::circle;
 
 inline void entity_component_linker(entity base_entity, entity corresponding_comp,
                                     myecs::unordered_map<entity, entity>& f_bridge){
