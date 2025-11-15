@@ -57,6 +57,16 @@ entity GLOBAL_ENTITY_COUNTER = 0;
 
 // COMPONENTS :
 
+// Component manager templated static map creation
+
+template<typename component>
+myecs::unordered_map<entity>& get_bridge() {
+  static myecs::unordered_map<entity> bridge;
+  return bridge;
+}
+
+
+
 namespace comp {
 
 
@@ -84,13 +94,10 @@ struct color {
 
 
 // just a rough work, i know it needs some fixing / refactoring
-myecs::unordered_map<entity> position_x_bridge;
-myecs::unordered_map<entity> position_y_bridge;
-myecs::unordered_map<entity> shape_width_bridge;
-myecs::unordered_map<entity> shape_height_bridge;
-myecs::unordered_map<entity> shape_color_bridge;
-myecs::unordered_map<entity> shape_rectangle_bridge;
-myecs::unordered_map<entity> shape_circle_bridge;
+myecs::unordered_map<entity> position_bridge;
+myecs::unordered_map<entity> rectangle_bridge;
+myecs::unordered_map<entity> circle_bridge;
+myecs::unordered_map<entity> color_bridge;
 
 
 // Indexes 
