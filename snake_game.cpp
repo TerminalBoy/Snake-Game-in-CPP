@@ -51,19 +51,13 @@ namespace myecs {
 // ENTITY :
 
 using entity = std::uint16_t;
-entity GLOBAL_ENTITY_COUNTER = 0;
+static entity GLOBAL_ENTITY_COUNTER = 0;
 
 
 
 // COMPONENTS :
 
-// Component manager templated static map creation
 
-template<typename component>
-myecs::unordered_map<entity>& get_bridge() {
-  static myecs::unordered_map<entity> bridge;
-  return bridge;
-}
 
 
 
@@ -73,6 +67,11 @@ namespace comp {
 struct position {
   myecs::d_array<float> x;
   myecs::d_array<float> y;
+
+  static std::size_t& size() {
+    static std::size_t value = 0;
+    return value;
+  }
 };
 
 struct rectangle {
@@ -90,102 +89,54 @@ struct color {
   myecs::d_array<sf::Color> value;
 };
 
+struct segment {
+  myecs::d_array<entity> obj;
+};
+
+
 }
 
 
-// just a rough work, i know it needs some fixing / refactoring
-myecs::unordered_map<entity> position_bridge;
-myecs::unordered_map<entity> rectangle_bridge;
-myecs::unordered_map<entity> circle_bridge;
-myecs::unordered_map<entity> color_bridge;
+// Component manager templated static map creation (automatic)
 
-
-// Indexes 
-
-myecs::d_array<entity> snake_segment_index;
+template<typename component>
+myecs::unordered_map<entity>& get_bridge() {
+  static myecs::unordered_map<entity> ECbridge;
+  return ECbridge;
+}
 
 
 
-/*
-struct render_window {
-  std::vector<sf::RenderWindow> sf_window;
-};
 
 
 
-struct renderable {
-  std::vector<sf::Font> font;
-  std::vector<sf::Text> text;
-  static sf::RectangleShape shape;
-};
-
-struct meta_data {
-  std::vector<std::string> title;
-};
-
-struct fps_handler {
-  std::vector<sf::Clock> clock; // for frame control
-  std::vector<sf::Time> delta_time;
-};
-
-*/
 
 // SYSTEM :
 
-// state managers
-enum class position_state { on, off };
-namespace shape_state {
-
-enum class state { on, off };
-enum class shape_type { circle, rectangle };
-enum class color_state { on, off };
-
-}
-
-
-comp::position* position_component = new comp::position;
-comp::circle* shape_component = new comp::circle;
-
+// ecs fucntions
+template <typename component>
 inline void entity_component_linker(entity base_entity, entity corresponding_comp,
-                                    myecs::unordered_map<entity, entity>& f_bridge){
+                                    myecs::unordered_map<entity>& f_bridge = get_bridge<component>()){
   f_bridge[base_entity] = corresponding_comp;
 }
 
-entity create_entity(position_state f_position_state, shape_state::state f_shape_state ,shape_state::shape_type f_shape_type, shape_state::color_state f_shape_colour_state ){
-  
-  
-
-  if (f_position_state == position_state::on) {
-    position_component->x.push_back(0);
-    position_component->y.push_back(0);
-    entity_component_linker(GLOBAL_ENTITY_COUNTER, position_component->x.size() - 1, position_x_bridge);
-    entity_component_linker(GLOBAL_ENTITY_COUNTER, position_component->y.size() - 1, position_y_bridge);
-  }
-
-  if (f_shape_type == shape_state::shape_type::rectangle && f_shape_state == shape_state::state::on) {
-    shape_component->rectangle.emplace_back();
-    entity_component_linker(GLOBAL_ENTITY_COUNTER, shape_component->rectangle.size() - 1, shape_rectangle_bridge);
-  } 
-  else if (f_shape_type == shape_state::shape_type::circle && f_shape_state == shape_state::state::on) {
-    shape_component->circle.emplace_back();
-    entity_component_linker(GLOBAL_ENTITY_COUNTER, shape_component->circle.size() - 1, shape_circle_bridge);
-  }
-
-  if (f_shape_colour_state == shape_state::color_state::on && f_shape_state == shape_state::state::on) {
-    shape_component->color.emplace_back();
-    shape_component->width.emplace_back();
-    shape_component->height.emplace_back();
-    entity_component_linker(GLOBAL_ENTITY_COUNTER, shape_component->color.size() - 1, shape_color_bridge);
-    entity_component_linker(GLOBAL_ENTITY_COUNTER, shape_component->width.size() - 1, shape_width_bridge);
-    entity_component_linker(GLOBAL_ENTITY_COUNTER, shape_component->height.size() - 1, shape_height_bridge);
-  }
-  
+entity create_entity(){
   GLOBAL_ENTITY_COUNTER++;
-  
   return GLOBAL_ENTITY_COUNTER - 1;
+}
+
+template <typename component>
+void add_component(entity id) {
 
 }
 
+int main() {
+  comp::position::size() = comp::position::size() + 12;
+  comp::position::size()++;
+  std::cout << " variable : " << comp::position::size() << std::endl;
+
+  return 0;
+}
 
 
 /*
