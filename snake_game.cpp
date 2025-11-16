@@ -67,11 +67,6 @@ namespace comp {
 struct position {
   myecs::d_array<float> x;
   myecs::d_array<float> y;
-
-  static std::size_t& size() {
-    static std::size_t value = 0;
-    return value;
-  }
 };
 
 struct rectangle {
@@ -94,9 +89,6 @@ struct segment {
 };
 
 
-}
-
-
 // Component manager templated static map creation (automatic)
 
 template<typename component>
@@ -105,36 +97,53 @@ myecs::unordered_map<entity>& get_bridge() {
   return ECbridge;
 }
 
+template <typename component>
+std::size_t& get_size() {
+  static std::size_t size = 0;
+  return size;
+}
+
+}
 
 
 
 
 
+
+//namespace syst {
 
 // SYSTEM :
 
 // ecs fucntions
 template <typename component>
 inline void entity_component_linker(entity base_entity, entity corresponding_comp,
-                                    myecs::unordered_map<entity>& f_bridge = get_bridge<component>()){
+  myecs::unordered_map<entity>& f_bridge = comp::get_bridge<component>()) {
   f_bridge[base_entity] = corresponding_comp;
 }
 
-entity create_entity(){
+entity create_entity() {
   GLOBAL_ENTITY_COUNTER++;
   return GLOBAL_ENTITY_COUNTER - 1;
 }
 
 template <typename component>
-void add_component(entity id) {
+void create_component() {
 
 }
 
-int main() {
-  comp::position::size() = comp::position::size() + 12;
-  comp::position::size()++;
-  std::cout << " variable : " << comp::position::size() << std::endl;
+template <typename component>
+void add_component(entity id) {
+  comp::get_size<component>()++;
+  entity_component_linker<component>(id, comp::get_size<component>() - 1);
+}
 
+
+//}
+
+int main() {
+  comp::get_size<comp::position>() = comp::get_size<comp::position>() + 12;
+  comp::get_size<comp::position>()++;
+  std::cout << " variable : " << comp::get_size<comp::position>() << "";
   return 0;
 }
 
