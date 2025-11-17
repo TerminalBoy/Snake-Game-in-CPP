@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\snake_game.cpp">
+    <ClCompile Include="..\struct_parser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
