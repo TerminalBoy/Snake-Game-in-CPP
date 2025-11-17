@@ -2,6 +2,7 @@
 #include <string>
 #include <fstream>
 #include <vector>
+#include <filesystem>
 
 // a very temporary code, ill refactor later but i need this for my ecs
 // so i am making it somehow work, no optimizations, only shortcuts for now
@@ -25,14 +26,16 @@ int main() {
 
   std::vector<std::string> element_token;// i know its very bad, ill fix it later
 
-  std::ifstream target_file("snake_game.cpp");
+  std::ifstream target_file("test.cpp");
   std::string line = "";
+  
+  if (!target_file.is_open()) std::cout << "Error opening file" << std::endl;
 
   while (std::getline(target_file, line)) {
-    
+  
     if (start) {
       if (if_struct_exists(line)) {
-
+        std::cout << "struct exists\n";
         int struct_start = line.find("struct");
         int ix = struct_start + 6;
         struct_name = "";
@@ -45,6 +48,7 @@ int main() {
             break;
           }
         }
+        std::cout << "struct name :" << struct_name << std::endl;
       }
       else if (struct_name != "") {
         std::string temp_element = "";
@@ -69,10 +73,12 @@ int main() {
     }
     
     if (line.find(START_PARSE) != std::string::npos) start = true;
-
-    
-
-
+    if (line.find(STOP_PARSE) != std::string::npos) break;
+   
   }
-  
+
+  for (int i = 0; i < element_token.size(); i++) {
+    std::cout << element_token[i] << std::endl;
+  }
+  return 0;
 }
