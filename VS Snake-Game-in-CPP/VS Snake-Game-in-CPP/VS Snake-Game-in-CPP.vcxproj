@@ -135,7 +135,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Custom_ECS_libs\memory.cpp" />
+    <ClCompile Include="..\..\Custom_Preprocessors\struct_parser\struct_parser.cpp" />
     <ClCompile Include="..\..\snake_game.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
