@@ -22,7 +22,7 @@ void remove_char(std::string& str, char ch) {
 
 std::string strip_struct_name(std::string str){
   std::size_t pos = str.find("struct");
-  str.erase(pos, pos + 5);
+  str.erase(pos, 6);
   
   pos = str.find("//");
   if (pos != std::string::npos) str.erase(pos, str.size() - 1);
