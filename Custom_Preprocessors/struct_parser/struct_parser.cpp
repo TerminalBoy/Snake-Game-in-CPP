@@ -32,6 +32,18 @@ std::string strip_struct_name(std::string str){
   return str;
 }
 
+std::string strip_namespace_name(std::string str) {
+  std::size_t pos = str.find("namespace");
+  str.erase(pos, 9);
+
+  pos = str.find("//");
+  if (pos != std::string::npos) str.erase(pos, str.size() - 1);
+  remove_char(str, ' ');
+  remove_char(str, '{');
+
+  return str;
+}
+
 std::string strip_element_name(std::string str) {
   std::string res = "";
   std::size_t endpos = str.find(";");
@@ -50,13 +62,24 @@ std::string strip_element_name(std::string str) {
 
 }
 
-std::vector<std::string> make_emplace_backs(std::vector<std::string> struct_token, std::vector<std::string> element_token, std::unordered_map<std::size_t, std::size_t> link) {
+std::vector<std::string> make_emplace_backs(std::vector<std::string> struct_token, std::vector<std::string> element_token, std::unordered_map<std::size_t, std::size_t> link, std::string& namespace_name){
   std::vector<std::string> res;
+  std::string previous_struct = "";
 
   //res.push_back(struct_token[i] + token_link)
   for (int i = 0; i < element_token.size(); i++) {
-    res.push_back(struct_token[link[i]] + "::" + element_token[i] + ".emplace_back();");
+    if (previous_struct != struct_token[link[i]]) {
+      if (i != 0) res.push_back("}");
+      res.push_back(" ");
+      res.push_back("template <>");
+      res.push_back(std::string() + "create_component<" + namespace_name + "::" + struct_token[link[i]] + ">(){");
+      previous_struct = struct_token[link[i]];
+    }
+    
+    res.push_back(std::string("  ") + namespace_name + "::" + struct_token[link[i]] + "::" + element_token[i] + ".emplace_back();");
+    
   }
+  res.push_back("}");
   return res;
 }
 
@@ -75,6 +98,7 @@ int main() {
 
   std::vector<std::string> struct_token; //elements and structs
   std::vector<std::string> element_token;
+  std::vector<std::string> namespace_token;
   std::unordered_map<std::size_t, std::size_t> token_link; // liked like <element, struct>
 
   std::size_t struct_counter = 0;
@@ -83,6 +107,10 @@ int main() {
   while (std::getline(target_file, current_line)) {
 
     if (parsing_state == state::on) {
+      if (current_line.find("namespace") != std::string::npos) {
+        namespace_token.push_back(strip_namespace_name(current_line));
+      }
+        
       if (current_line.find("struct") != std::string::npos) {
         struct_token.push_back(strip_struct_name(current_line));
         struct_counter++;
@@ -94,6 +122,8 @@ int main() {
 
       }
 
+
+
     }
     
     
@@ -103,9 +133,13 @@ int main() {
    
   }
   
-  std::vector<std::string> res = make_emplace_backs(struct_token, element_token, token_link);
+  std::vector<std::string> res = make_emplace_backs(struct_token, element_token, token_link, namespace_token[0]);
+
+  std::ofstream output_file("generated_components.hpp");
+
 
   for (int i = 0; i < res.size(); i++) {
+    output_file << res[i] << '\n';
     std::cout << res[i] << '\n';
   }
 
