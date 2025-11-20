@@ -1,10 +1,32 @@
+
+
+// About including
+// you can include as the directory starts from the project root
+// compiler does not matter
+
+// Even in Visual Studio, the (.sln) file is configured to have the project root as one of its include directory
+
+
+// About linking
+// the linker root is also configired to have the project root as its starting or its root directory (Visual Studio)
+
+// Conclusion : 
+// Whether your compiler is the Visual Studio one (MSVC) or your are using Visual Studio IDE and its configuration (.sln)
+// or wheather you are using any compiler or any IDE
+// Note that all directories related to libraries(including and linking) are in perspective of project root or repository root
+
+// I have tried my best too keep the project as compiler and IDE independent as i can
+
+// the include and link are as transperent as they are in perspective of project/repository root;
+
+
 #include <iostream> // only  for debugging
 #include <cstdlib>  
 #include <vector>
 #include <string>
 #include <array>
 #include <unordered_map>
-#include <SFML/Graphics.hpp>
+#include <Dependencies/SFML/include/SFML/Graphics.hpp> // i am sorry for this mess, but the library has hard coded the "<SFML/Graphics/**>" paths
 //#include <Custom_ECS_libs/memory.hpp>// will test later
 
 // only a temp solution until i create my own dynamic array and the other memory utils

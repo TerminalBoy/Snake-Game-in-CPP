@@ -6,6 +6,7 @@ temp.cpp
 
 # Ignore the folder at root and all its contents and subfolders
 /VS Snake-Game-in-CPP/** 
+/Dependencies/SFML/**
 
 /Custom_Preprocessors/struct_parser/VS struct_parser/**
 
