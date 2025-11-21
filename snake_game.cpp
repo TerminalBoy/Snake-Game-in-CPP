@@ -26,20 +26,14 @@
 #include <string>
 #include <array>
 #include <unordered_map>
+
 #include <Dependencies/SFML/include/SFML/Graphics.hpp> // i am sorry for this mess, but the library has hard coded the "<SFML/Graphics/**>" paths
+#include <Dependencies/Custom_ECS/memory.hpp>
+#include <Dependencies/Custom_ECS/components.hpp>
+#include <Dependencies/Custom_ECS/generated_components_create.hpp>
+
 //#include <Custom_ECS_libs/memory.hpp>// will test later
 
-// only a temp solution until i create my own dynamic array and the other memory utils
-
-namespace myecs {
-
-  template<typename T>
-  using d_array = std::vector<T>;
-
-  template<typename T, typename Y = T>
-  using unordered_map = std::unordered_map<T, Y>;
-
-}
 
 
 
@@ -68,64 +62,34 @@ namespace myecs {
 // trying ECS
 
 
-
-
-// ENTITY :
-
-using entity = std::uint16_t;
-static entity GLOBAL_ENTITY_COUNTER = 0;
-
+// Entity
+// 
+// entity defined in memory.hpp in <Dependencies/Custom_ECS/memory.hpp>
+//
+// using entity = std::uint16_t;
+// static entity GLOBAL_ENTITY_COUNTER = 0;
+//
 
 
 // COMPONENTS :
 
 
 
-
-
-namespace comp {
-
-
-struct position {
-  myecs::d_array<float> x;
-  myecs::d_array<float> y;
-};
-
-struct rectangle {
-  myecs::d_array<float> width;
-  myecs::d_array<float> height;
-  myecs::d_array<sf::RectangleShape> shape;
-};
-
-struct circle {
-  myecs::d_array<float> radius;
-  myecs::d_array<sf::CircleShape> shape;
-};
-
-struct color {
-  myecs::d_array<sf::Color> value;
-};
-
-struct segment {
-  myecs::d_array<entity> obj;
-};
-
-
 // Component manager templated static map creation (automatic)
+namespace comp {
+  template<typename component>
+  myecs::unordered_map<entity>& get_bridge() {
+    static myecs::unordered_map<entity> ECbridge;
+    return ECbridge;
+  }
 
-template<typename component>
-myecs::unordered_map<entity>& get_bridge() {
-  static myecs::unordered_map<entity> ECbridge;
-  return ECbridge;
+  template <typename component>
+  std::size_t& get_size() {
+    static std::size_t size = 0;
+    return size;
+  }
 }
 
-template <typename component>
-std::size_t& get_size() {
-  static std::size_t size = 0;
-  return size;
-}
-
-}
 
 
 

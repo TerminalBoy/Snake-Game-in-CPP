@@ -72,7 +72,7 @@ std::vector<std::string> make_emplace_backs(std::vector<std::string> struct_toke
       if (i != 0) res.push_back("}");
       res.push_back(" ");
       res.push_back("template <>");
-      res.push_back(std::string() + "create_component<" + namespace_name + "::" + struct_token[link[i]] + ">(){");
+      res.push_back(std::string() + "void create_component<" + namespace_name + "::" + struct_token[link[i]] + ">(){");
       previous_struct = struct_token[link[i]];
     }
     
@@ -94,7 +94,7 @@ int main() {
 
   std::string current_line = "";
 
-  std::ifstream target_file("test.cpp");
+  std::ifstream target_file("Dependencies/Custom_ECS/components.hpp");
 
   std::vector<std::string> struct_token; //elements and structs
   std::vector<std::string> element_token;
@@ -135,7 +135,7 @@ int main() {
   
   std::vector<std::string> res = make_emplace_backs(struct_token, element_token, token_link, namespace_token[0]);
 
-  std::ofstream output_file("generated_components.hpp");
+  std::ofstream output_file("Dependencies/Custom_ECS/generated_components_create.hpp");
 
 
   for (int i = 0; i < res.size(); i++) {
