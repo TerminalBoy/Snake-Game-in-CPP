@@ -1,7 +1,7 @@
 #pragma once
 
 #include "memory.hpp"
-#include <Dependencies/SFML/include/SFML/Graphics.hpp>
+#include "../SFML/include/SFML/Graphics.hpp"
 
 // ##-START_PARSE-##
 

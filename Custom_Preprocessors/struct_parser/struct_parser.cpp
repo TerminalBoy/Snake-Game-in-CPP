@@ -67,16 +67,22 @@ std::vector<std::string> make_emplace_backs(std::vector<std::string> struct_toke
   std::string previous_struct = "";
 
   //res.push_back(struct_token[i] + token_link)
+
+  res.push_back("#include \"components.hpp\"");
+  res.push_back("");
+  res.push_back("template <typename T>");
+  res.push_back("void create_component(std::unique_ptr<T>& pointer) {}");
+
   for (int i = 0; i < element_token.size(); i++) {
     if (previous_struct != struct_token[link[i]]) {
       if (i != 0) res.push_back("}");
       res.push_back(" ");
       res.push_back("template <>");
-      res.push_back(std::string() + "void create_component<" + namespace_name + "::" + struct_token[link[i]] + ">(){");
+      res.push_back(std::string() + "void create_component<" + namespace_name + "::" + struct_token[link[i]] + ">(" + "std::unique_ptr<" + namespace_name + "::" + struct_token[link[i]] + ">&" + " pointer){");
       previous_struct = struct_token[link[i]];
     }
     
-    res.push_back(std::string("  ") + namespace_name + "::" + struct_token[link[i]] + "::" + element_token[i] + ".emplace_back();");
+    res.push_back(std::string("  ") + "pointer->" + element_token[i] + ".emplace_back();");
     
   }
   res.push_back("}");
