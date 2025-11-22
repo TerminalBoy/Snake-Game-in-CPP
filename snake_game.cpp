@@ -19,7 +19,7 @@
 
 // the include and link are as transperent as they are in perspective of project/repository root;
 
-
+#include <memory>
 #include <iostream> // only  for debugging
 #include <cstdlib>  
 #include <vector>
@@ -27,10 +27,10 @@
 #include <array>
 #include <unordered_map>
 
-#include <Dependencies/SFML/include/SFML/Graphics.hpp> // i am sorry for this mess, but the library has hard coded the "<SFML/Graphics/**>" paths
-#include <Dependencies/Custom_ECS/memory.hpp>
-#include <Dependencies/Custom_ECS/components.hpp>
-#include <Dependencies/Custom_ECS/generated_components_create.hpp>
+#include "Dependencies/SFML/include/SFML/Graphics.hpp" // i am sorry for this mess, but the library has hard coded the "<SFML/Graphics/**>" paths
+#include "Dependencies/Custom_ECS/memory.hpp"
+#include "Dependencies/Custom_ECS/components.hpp"
+#include "Dependencies/Custom_ECS/generated_components_create.hpp"
 
 //#include <Custom_ECS_libs/memory.hpp>// will test later
 
@@ -64,12 +64,12 @@
 
 // Entity
 // 
-// entity defined in memory.hpp in <Dependencies/Custom_ECS/memory.hpp>
+// entity defined in memory.hpp in "Dependencies/Custom_ECS/memory.hpp"
 //
 // using entity = std::uint16_t;
-// static entity GLOBAL_ENTITY_COUNTER = 0;
 //
 
+static entity GLOBAL_ENTITY_COUNTER = 0;
 
 // COMPONENTS :
 

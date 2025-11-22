@@ -67,7 +67,7 @@ std::vector<std::string> make_emplace_backs(std::vector<std::string> struct_toke
   std::string previous_struct = "";
 
   //res.push_back(struct_token[i] + token_link)
-
+  res.push_back("#include <memory>");
   res.push_back("#include \"components.hpp\"");
   res.push_back("");
   res.push_back("template <typename T>");

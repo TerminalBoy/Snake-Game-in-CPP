@@ -1,3 +1,4 @@
+#include <memory>
 #include "components.hpp"
 
 template <typename T>

@@ -9,7 +9,7 @@
 // ENTITY :
 
 using entity = std::uint16_t;
-static entity GLOBAL_ENTITY_COUNTER = 0;
+
 
 namespace myecs {
 
