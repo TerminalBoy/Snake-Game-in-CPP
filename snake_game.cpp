@@ -72,11 +72,31 @@
 static entity GLOBAL_ENTITY_COUNTER = 0;
 
 // COMPONENTS :
+ 
+// defined in "components.hpp"
 
 
+// SYSTEM :
 
-// Component manager templated static map creation (automatic)
-namespace comp {
+// i am sorry for these messy comments, having a tough time making the code architecture, but i am tring my best
+
+// creation of entity == entity++; // only counter is incremented
+
+// initialization of component (from scratch) == first component is stored in heap with its adress stored in 
+// static unique_ptr (just initial address storage) -> this is just the creation of component container / structure
+
+// no bridging needed now!
+// (only initiliazed if used -> type id dispatch, only compile-time)
+
+
+// creation of component == as the component is initialized now -> we will increment its static size counter 
+// to keep track of its array sizes at runtime -> bridging of components is done with the entities
+
+// component contents acessed only by its static - unique_ptr
+  
+
+namespace myecs {
+  // Component manager templated static map creation (automatic)
   template<typename component>
   myecs::unordered_map<entity>& get_bridge() {
     static myecs::unordered_map<entity> ECbridge;
@@ -85,51 +105,50 @@ namespace comp {
 
   template <typename component>
   std::size_t& get_size() {
-    static std::size_t size = 0;
-    return size;
+    static std::size_t value = 0;
+    return value;
   }
+
+  // ecs functions
+
+  entity create_entity() { // first step
+    GLOBAL_ENTITY_COUNTER++;
+    return GLOBAL_ENTITY_COUNTER - 1;
+  }
+
+  template <typename component>
+  std::unique_ptr<component>& return_component_addr(){
+    static std::unique_ptr<component> pointer = std::make_unique<component>();
+    return pointer;
+  }
+
+  template <typename component>
+  void new_init_component() { // second step
+    return_component_addr<component>();
+  }
+
+
+  template <typename component> // helper only, no need to call explictly
+  inline void entity_component_linker(entity base_entity, entity corresponding_comp,
+    myecs::unordered_map<entity>& f_bridge = comp::get_bridge<component>()) {
+    f_bridge[base_entity] = corresponding_comp;
+  }
+
+  // compile time existing checks are not yet fully implemented, please be careful using these functions
+  template <typename component>
+  void add_component(entity& id) { // third step
+  
+    myecs::create_component(return_component_addr<component>()); // from "generated_components_create.hpp"
+    get_size<component>()++;
+
+    entity_component_linker<component>(id, get_size<component>() - 1); 
+  }
+
 }
 
-
-
-
-
-
-
-//namespace syst {
-
-// SYSTEM :
-
-// ecs fucntions
-template <typename component>
-inline void entity_component_linker(entity base_entity, entity corresponding_comp,
-  myecs::unordered_map<entity>& f_bridge = comp::get_bridge<component>()) {
-  f_bridge[base_entity] = corresponding_comp;
-}
-
-entity create_entity() {
-  GLOBAL_ENTITY_COUNTER++;
-  return GLOBAL_ENTITY_COUNTER - 1;
-}
-
-template <typename component>
-void create_component() {
-
-}
-
-template <typename component>
-void add_component(entity id) {
-  comp::get_size<component>()++;
-  entity_component_linker<component>(id, comp::get_size<component>() - 1);
-}
-
-
-//}
 
 int main() {
-  comp::get_size<comp::position>() = comp::get_size<comp::position>() + 12;
-  comp::get_size<comp::position>()++;
-  std::cout << " variable : " << comp::get_size<comp::position>() << "";
+  
   return 0;
 }
 
