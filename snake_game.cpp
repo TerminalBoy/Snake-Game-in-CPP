@@ -96,17 +96,33 @@ static entity GLOBAL_ENTITY_COUNTER = 0;
   
 
 namespace myecs {
+  
+  // A new way to store metadata 
+  // completely elimininates, function statics' guard checks,
+  // increasing prefomance exponentially in large ecs data and systems
+  // here the metadata is initialized before main() and dosent involve runtime guard checks
+  // only pure fast, type id dispatched fetching // as fast as fetching a normal global variable
+  // even at the cpu instruction level (no extra cycles)
+  template <typename component>
+  struct storage {
+    inline static std::size_t size = 0;
+    inline static std::unique_ptr<component> pointer = std::make_unique<component>();
+    inline static myecs::unordered_map<entity> ECbridge;
+  };
+  
+  
+  
   // Component manager templated static map creation (automatic)
-  template<typename component>
-  myecs::unordered_map<entity>& get_bridge() {
-    static myecs::unordered_map<entity> ECbridge;
-    return ECbridge;
+  template <typename component>
+  inline myecs::unordered_map<entity>& get_bridge() {
+    //static myecs::unordered_map<entity> ECbridge;
+    return myecs::storage<component>::ECbridge;
   }
 
   template <typename component>
-  std::size_t& get_size() {
-    static std::size_t value = 0;
-    return value;
+  inline std::size_t& get_size() {
+    //static std::size_t value = 0;
+    return myecs::storage<component>::size;
   }
 
   // ecs functions
@@ -117,9 +133,9 @@ namespace myecs {
   }
 
   template <typename component>
-  std::unique_ptr<component>& return_component_addr(){
-    static std::unique_ptr<component> pointer = std::make_unique<component>();
-    return pointer;
+  inline std::unique_ptr<component>& return_component_addr(){
+    //static std::unique_ptr<component> pointer = std::make_unique<component>();
+    return myecs::storage<component>::pointer;
   }
 
   // Un-nessesarry function depricated
@@ -152,6 +168,7 @@ namespace myecs {
   }
 
 }
+
 
 
 int main() {
