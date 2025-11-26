@@ -4,8 +4,8 @@
 
 namespace myecs {
 
-template <typename T>
-void create_component(std::unique_ptr<T>& pointer) {}
+template <typename component>
+void create_component(std::unique_ptr<component>& pointer) {}
  
 template <>
 void create_component<comp::position>(std::unique_ptr<comp::position>& pointer){
