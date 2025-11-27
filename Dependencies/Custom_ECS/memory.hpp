@@ -8,7 +8,7 @@
 
 // ENTITY :
 
-using entity = std::uint16_t;
+using entity = std::size_t;
 
 
 namespace myecs {
@@ -18,5 +18,7 @@ namespace myecs {
 
   template<typename T, typename Y = T>
   using unordered_map = std::unordered_map<T, Y>;
+
+
 
 }

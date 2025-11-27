@@ -37,7 +37,7 @@
 
 
 
-// ==============================================================================================================
+// 
 
 // ECS : enitity component system 
 // 
@@ -55,7 +55,7 @@
 // System :
 // this is the actual logic of the game, stored in functions
 
-// ==============================================================================================================
+// 
 
 
 
@@ -66,10 +66,10 @@
 // 
 // entity defined in memory.hpp in "Dependencies/Custom_ECS/memory.hpp"
 //
-// using entity = std::uint16_t;
+// using entity = std::size_t;
 //
 
-static entity GLOBAL_ENTITY_COUNTER = 0;
+static entity GLOBAL_ENTITY_COUNTER = 0; 
 
 // COMPONENTS :
  
@@ -107,9 +107,17 @@ namespace myecs {
   struct storage {
     inline static std::size_t size = 0;
     inline static std::unique_ptr<component> pointer = std::make_unique<component>();
-    inline static myecs::unordered_map<std::size_t> entity_component_link;
+    //inline static myecs::unordered_map<std::size_t> entity_component_link;
+    inline static myecs::d_array<std::size_t> sparse; // sparse<component>[entity_id] = component_index 
+                                            //^^^^^^there is not even a need for a dense array because the components arrays are always dense by design
   };
  
+  template <typename component>
+  void sparse_allocator(entity& id, std::size_t& corresponding_comp_index, myecs::d_array<std::size_t>& sparse = myecs::storage<component>::sparse) { // allocates and links the values
+    sparse.resize(GLOBAL_ENTITY_COUNTER);
+    sparse[id] = corresponding_comp_index;
+  }
+
 
   // ecs functions
 
@@ -119,9 +127,9 @@ namespace myecs {
   }
 
   template <typename component> // helper only, no need to call explictly
-  inline void entity_component_linker(entity base_entity, std::size_t corresponding_comp_index,
-    myecs::unordered_map<std::size_t>& eclink = myecs::storage<component>::entity_component_link) {
-    eclink [base_entity] = corresponding_comp_index;
+  inline void entity_component_linker(entity& id, std::size_t& corresponding_comp_index, 
+                                      myecs::d_array<std::size_t>& sparse = myecs::storage<component>::sparse) {
+    sparse_allocator<component>(id, corresponding_comp_index);
   }
 
  
@@ -133,13 +141,15 @@ namespace myecs {
   }
 
   template <typename component>
-  void remove_comp_from(entity& id, myecs::unordered_map<entity, std::size_t>& ECbridge = myecs::storage<component>::ECbridge) {
-   
+  void remove_comp_from(entity& id, myecs::d_array<std::size_t>& sparse = myecs::storage<component>::sparse) {
+    sparse[id] = myecs::storage<component>::size - 1;
+    myecs::delete_component<component>(myecs::storage<component>::pointer, sparse[id]); 
+    myecs::storage<component>::size--;
   }
 
   template <typename component>
   inline const std::size_t& comp_index_of(entity& id) {
-    return myecs::storage<component>::entity_component_link[id];
+    return myecs::storage<component>::sparse[id];
   }
 
 }
