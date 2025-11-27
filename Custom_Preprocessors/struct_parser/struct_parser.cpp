@@ -112,7 +112,7 @@ std::vector<std::string> cpp_make_deletion(std::vector<std::string> struct_token
   //res.push_back("namespace myecs {");
   res.push_back("");
   res.push_back("template <typename component>");
-  res.push_back("void myecs::delete_component(std::unique_ptr<component>& pointer, std::size_t& index) {// can handle exceptions}");
+  res.push_back("void myecs::delete_component(std::unique_ptr<component>& pointer, std::size_t& index) {}// can handle exceptions");
 
   for (int i = 0; i < element_token.size(); i++) {
     if (previous_struct != struct_token[link[i]]) {

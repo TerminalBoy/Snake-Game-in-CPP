@@ -6,7 +6,7 @@
 
 
 template <typename component>
-void myecs::delete_component(std::unique_ptr<component>& pointer, std::size_t& index) {// can handle exceptions}
+void myecs::delete_component(std::unique_ptr<component>& pointer, std::size_t& index) {}// can handle exceptions
  
 template <>
 void myecs::delete_component<comp::position>(std::unique_ptr<comp::position>& pointer, std::size_t& index){

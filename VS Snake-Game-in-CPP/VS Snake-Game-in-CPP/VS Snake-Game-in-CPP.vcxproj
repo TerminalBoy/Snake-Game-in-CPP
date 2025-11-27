@@ -139,6 +139,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Dependencies\Custom_ECS\generated_components_create.cpp" />
+    <ClCompile Include="..\..\Dependencies\Custom_ECS\generated_components_delete.cpp" />
     <ClCompile Include="..\..\snake_game.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

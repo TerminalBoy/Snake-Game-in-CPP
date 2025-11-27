@@ -31,7 +31,7 @@
 #include "Dependencies/Custom_ECS/memory.hpp"
 #include "Dependencies/Custom_ECS/components.hpp"
 #include "Dependencies/Custom_ECS/generated_components_create.hpp"
-
+#include "Dependencies/Custom_ECS/generated_components_delete.hpp"
 //#include <Custom_ECS_libs/memory.hpp>// will test later
 
 
