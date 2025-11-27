@@ -107,23 +107,9 @@ namespace myecs {
   struct storage {
     inline static std::size_t size = 0;
     inline static std::unique_ptr<component> pointer = std::make_unique<component>();
-    inline static myecs::unordered_map<entity> ECbridge;
+    inline static myecs::unordered_map<std::size_t> entity_component_link;
   };
-  
-  
-  
-  // Component manager templated static map creation (automatic)
-  template <typename component>
-  inline myecs::unordered_map<entity>& get_bridge() {
-    //static myecs::unordered_map<entity> ECbridge;
-    return myecs::storage<component>::ECbridge;
-  }
-
-  template <typename component>
-  inline std::size_t& get_size() {
-    //static std::size_t value = 0;
-    return myecs::storage<component>::size;
-  }
+ 
 
   // ecs functions
 
@@ -132,39 +118,28 @@ namespace myecs {
     return GLOBAL_ENTITY_COUNTER - 1;
   }
 
-  template <typename component>
-  inline std::unique_ptr<component>& return_component_addr(){
-    //static std::unique_ptr<component> pointer = std::make_unique<component>();
-    return myecs::storage<component>::pointer;
-  }
-
-  // Un-nessesarry function depricated
-  //template <typename component>
-  //void new_init_component() { // second step
-  //  return_component_addr<component>();
-  //  get_size<component>();
-  //}
-
-
   template <typename component> // helper only, no need to call explictly
-  inline void entity_component_linker(entity base_entity, entity corresponding_comp,
-    myecs::unordered_map<entity>& f_bridge = myecs::get_bridge<component>()) {
-    f_bridge[base_entity] = corresponding_comp;
+  inline void entity_component_linker(entity base_entity, std::size_t corresponding_comp_index,
+    myecs::unordered_map<std::size_t>& eclink = myecs::storage<component>::entity_component_link) {
+    eclink [base_entity] = corresponding_comp_index;
   }
 
-  // compile time existing checks are not yet fully implemented, please be careful using these functions
+ 
   template <typename component>
-  void add_component(entity& id) { // third step
-  
-    myecs::create_component(return_component_addr<component>()); // from "generated_components_create.hpp"
-    get_size<component>()++;
-
-    entity_component_linker<component>(id, get_size<component>() - 1); 
+  void add_comp_to(entity& id) { // third step
+    myecs::create_component(myecs::storage<component>::pointer); // from "generated_components_create.hpp"
+    myecs::storage<component>::size++;
+    entity_component_linker<component>(id, myecs::storage<component>::size - 1); 
   }
 
   template <typename component>
-  inline const std::size_t& read_bridge(entity& id) {
-    return get_bridge<component>()[id];
+  void remove_comp_from(entity& id, myecs::unordered_map<entity, std::size_t>& ECbridge = myecs::storage<component>::ECbridge) {
+   
+  }
+
+  template <typename component>
+  inline const std::size_t& comp_index_of(entity& id) {
+    return myecs::storage<component>::entity_component_link[id];
   }
 
 }
@@ -178,41 +153,42 @@ int main() {
   //myecs::new_init_component<comp::rectangle>();
   //myecs::new_init_component<comp::position>();
   
-  myecs::add_component<comp::rectangle>(rectangle);
-  myecs::add_component<comp::position>(rectangle);
-  myecs::add_component<comp::position>(point);
+  myecs::add_comp_to<comp::rectangle>(rectangle);
+  myecs::add_comp_to<comp::position>(rectangle);
+  myecs::add_comp_to<comp::position>(point);
   // entity id == 0
   // component id == 0
 
   // adding data to its component
-  myecs::return_component_addr<comp::position>()->x[myecs::read_bridge<comp::position>(point)] = 400;
-  myecs::return_component_addr<comp::position>()->y[myecs::read_bridge<comp::position>(point)] = 500;
+  myecs::storage<comp::position>::pointer->x[myecs::comp_index_of<comp::position>(point)] = 400;
+  myecs::storage<comp::position>::pointer->y[myecs::comp_index_of<comp::position>(point)] = 500;
 
-  myecs::return_component_addr<comp::position>()->x[myecs::read_bridge<comp::position>(rectangle)] = 500;
-  myecs::return_component_addr<comp::position>()->y[myecs::read_bridge<comp::position>(rectangle)] = 501;
-  myecs::return_component_addr<comp::rectangle>()->height[myecs::read_bridge<comp::rectangle>(rectangle)] = 10;
-  myecs::return_component_addr<comp::rectangle>()->width[myecs::read_bridge<comp::rectangle>(rectangle)] = 20;
+  myecs::storage<comp::position>::pointer->x[myecs::comp_index_of<comp::position>(rectangle)] = 500;
+  myecs::storage<comp::position>::pointer->y[myecs::comp_index_of<comp::position>(rectangle)] = 501;
+  
+  myecs::storage<comp::rectangle>::pointer->height[myecs::comp_index_of<comp::rectangle>(rectangle)] = 10;
+  myecs::storage<comp::rectangle>::pointer->width [myecs::comp_index_of<comp::rectangle>(rectangle)] = 20;
 
   // reading data from component
 
-  std::cout << "rectangle height: " << myecs::return_component_addr<comp::rectangle>()->height[myecs::read_bridge<comp::rectangle>(rectangle)] << std::endl;
-  std::cout << "rectangle component id at entity id (rectangle): " << myecs::read_bridge<comp::rectangle>(rectangle) << std::endl;
-  std::cout << "point component id at entity id (point): " << myecs::read_bridge<comp::rectangle>(point) << std::endl;
+  std::cout << "rectangle height: " << myecs::storage<comp::rectangle>::pointer->height[myecs::comp_index_of<comp::rectangle>(rectangle)] << std::endl;
+  std::cout << "rectangle component id at entity id (rectangle): " << myecs::comp_index_of<comp::rectangle>(rectangle) << std::endl;
+  std::cout << "point component id at entity id (point): " << myecs::comp_index_of<comp::rectangle>(point) << std::endl;
   std::cout << "entity id (rectangle): " << rectangle << std::endl;
   std::cout << "entity id (point): " << point << std::endl;
 
-  std::cout << "point,s x: " << myecs::return_component_addr<comp::position>()->x[myecs::read_bridge<comp::position>(point)] << std::endl;
-  std::cout << "point,s y: " << myecs::return_component_addr<comp::position>()->y[myecs::read_bridge<comp::position>(point)] << std::endl;
-  std::cout << "rectangle,s x: " << myecs::return_component_addr<comp::position>()->x[myecs::read_bridge<comp::position>(rectangle)] << std::endl;
-  std::cout << "rectangle,s y: " << myecs::return_component_addr<comp::position>()->y[myecs::read_bridge<comp::position>(rectangle)] << std::endl;
+  std::cout << "point,s x: " << myecs::storage<comp::position>::pointer->x[myecs::comp_index_of<comp::position>(point)] << std::endl;
+  std::cout << "point,s y: " << myecs::storage<comp::position>::pointer->y[myecs::comp_index_of<comp::position>(point)] << std::endl;
+  std::cout << "rectangle,s x: " << myecs::storage<comp::position>::pointer->x[myecs::comp_index_of<comp::position>(rectangle)] << std::endl;
+  std::cout << "rectangle,s y: " << myecs::storage<comp::position>::pointer->y[myecs::comp_index_of<comp::position>(rectangle)] << std::endl;
   
 
 
   // reading the components very effiently
   // crazy fast for rendering systems needing the vertex arrays of all entities // very cache friendly
-  for (int i = 0; i < myecs::get_size<comp::position>(); i++) {
-    std::cout << "comp::position' x: " << myecs::return_component_addr<comp::position>()->x[i] << std::endl;
-    std::cout << "comp::position' y: " << myecs::return_component_addr<comp::position>()->y[i] << std::endl;
+  for (int i = 0; i < myecs::storage<comp::position>::size; i++) {
+    std::cout << "comp::position' x: " << myecs::storage<comp::position>::pointer->x[i] << std::endl;
+    std::cout << "comp::position' y: " << myecs::storage<comp::position>::pointer->y[i] << std::endl;
   }
 
   return 0;
