@@ -107,15 +107,17 @@ namespace myecs {
   struct storage {
     inline static std::size_t size = 0;
     inline static std::unique_ptr<component> pointer = std::make_unique<component>();
-    //inline static myecs::unordered_map<std::size_t> entity_component_link;
     inline static myecs::d_array<std::size_t> sparse; // sparse<component>[entity_id] = component_index 
                                             //^^^^^^there is not even a need for a dense array because the components arrays are always dense by design
+    inline static myecs::d_array<std::size_t> reverse_sparse; // reverse_sparse<component>[component_index] = owning_entity_id;
   };
  
   template <typename component>
-  void sparse_allocator(entity& id, std::size_t& corresponding_comp_index, myecs::d_array<std::size_t>& sparse = myecs::storage<component>::sparse) { // allocates and links the values
-    sparse.resize(GLOBAL_ENTITY_COUNTER);
-    sparse[id] = corresponding_comp_index;
+  void sparse_allocator(entity& id, std::size_t& corresponding_comp_index) { // allocates and links the values
+    myecs::storage<component>::sparse.resize(GLOBAL_ENTITY_COUNTER);
+    myecs::storage<component>::reverse_sparse.resize(GLOBAL_ENTITY_COUNTER);
+    myecs::storage<component>::sparse[id] = corresponding_comp_index;
+    myecs::storage<component>::reverse_sparse[corresponding_comp_index] = id;
   }
 
 
@@ -141,9 +143,17 @@ namespace myecs {
   }
 
   template <typename component>
-  void remove_comp_from(entity& id, myecs::d_array<std::size_t>& sparse = myecs::storage<component>::sparse) {
-    sparse[id] = myecs::storage<component>::size - 1;
+  void remove_comp_from(entity& id) {
+    auto sparse = myecs::storage<component>::sparse;
+    auto reverse_sparse = sparse = myecs::storage<component>::reverse_sparse;
+    auto last_comp_id = myecs::storage<component>::size - 1;
+    auto last_comps_elemnt_id = myecs::storage<component>::reverse_sparse[last_comp_id];
+
+    sparse[last_comps_elemnt_id] = sparse[id];
+    
+
     myecs::delete_component<component>(myecs::storage<component>::pointer, sparse[id]); 
+    sparse[id] = myecs::storage<component>::size;
     myecs::storage<component>::size--;
   }
 
