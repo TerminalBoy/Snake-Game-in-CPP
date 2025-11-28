@@ -113,7 +113,7 @@ namespace myecs {
   };
  
   template <typename component>
-  void sparse_allocator(entity& id, std::size_t& corresponding_comp_index) { // allocates and links the values
+  void sparse_allocator(entity& id, std::size_t corresponding_comp_index) { // allocates and links the values
     myecs::storage<component>::sparse.resize(GLOBAL_ENTITY_COUNTER);
     myecs::storage<component>::reverse_sparse.resize(GLOBAL_ENTITY_COUNTER);
     myecs::storage<component>::sparse[id] = corresponding_comp_index;
@@ -129,8 +129,7 @@ namespace myecs {
   }
 
   template <typename component> // helper only, no need to call explictly
-  inline void entity_component_linker(entity& id, std::size_t& corresponding_comp_index, 
-                                      myecs::d_array<std::size_t>& sparse = myecs::storage<component>::sparse) {
+  inline void entity_component_linker(entity& id, std::size_t corresponding_comp_index) {
     sparse_allocator<component>(id, corresponding_comp_index);
   }
 
@@ -144,15 +143,22 @@ namespace myecs {
 
   template <typename component>
   void remove_comp_from(entity& id) {
-    auto sparse = myecs::storage<component>::sparse;
-    auto reverse_sparse = sparse = myecs::storage<component>::reverse_sparse;
-    auto last_comp_id = myecs::storage<component>::size - 1;
-    auto last_comps_elemnt_id = myecs::storage<component>::reverse_sparse[last_comp_id];
+    
+    auto& sparse = myecs::storage<component>::sparse;
+    auto& reverse_sparse = myecs::storage<component>::reverse_sparse;
+    auto last_component_index = myecs::storage<component>::size - 1;
+    auto& last_component_entity_id = myecs::storage<component>::reverse_sparse[last_component_index];
 
-    sparse[last_comps_elemnt_id] = sparse[id];
     
 
-    myecs::delete_component<component>(myecs::storage<component>::pointer, sparse[id]); 
+    sparse[last_component_entity_id] = sparse[id];
+    reverse_sparse[sparse[id]] = last_component_entity_id;
+    
+    myecs::delete_component<component>(myecs::storage<component>::pointer, sparse[id]); // from "generated_components_delete.hpp"
+
+    //myecs::storage<component>sparse[myecs::storage<component>::reverse_sparse[myecs::storage<component>::size - 1] = myecs::storage<component>::sparse[id];
+
+    
     sparse[id] = myecs::storage<component>::size;
     myecs::storage<component>::size--;
   }
@@ -176,6 +182,7 @@ int main() {
   myecs::add_comp_to<comp::rectangle>(rectangle);
   myecs::add_comp_to<comp::position>(rectangle);
   myecs::add_comp_to<comp::position>(point);
+  myecs::add_comp_to<comp::segment>(point);
   // entity id == 0
   // component id == 0
 
@@ -188,6 +195,7 @@ int main() {
   
   myecs::storage<comp::rectangle>::pointer->height[myecs::comp_index_of<comp::rectangle>(rectangle)] = 10;
   myecs::storage<comp::rectangle>::pointer->width [myecs::comp_index_of<comp::rectangle>(rectangle)] = 20;
+
 
   // reading data from component
 
@@ -202,8 +210,17 @@ int main() {
   std::cout << "rectangle,s x: " << myecs::storage<comp::position>::pointer->x[myecs::comp_index_of<comp::position>(rectangle)] << std::endl;
   std::cout << "rectangle,s y: " << myecs::storage<comp::position>::pointer->y[myecs::comp_index_of<comp::position>(rectangle)] << std::endl;
   
+  // deleting component from entities
 
+  std::cout << "before deletion \n sparse[point] = " << myecs::storage<comp::position>::sparse[point];
 
+  myecs::remove_comp_from<comp::position>(point);
+  
+
+  std::cout << " \n after deletion \n sparse[point] = " << myecs::storage<comp::position>::sparse[point];
+  std::cout << "\nmyecs::storage<comp::position>::size = " << myecs::storage<comp::position>::size;
+  std::cout << "\n reverse_sparse[point] = " << myecs::storage<comp::position>::reverse_sparse[0];
+  std::cout << std::endl;
   // reading the components very effiently
   // crazy fast for rendering systems needing the vertex arrays of all entities // very cache friendly
   for (int i = 0; i < myecs::storage<comp::position>::size; i++) {
