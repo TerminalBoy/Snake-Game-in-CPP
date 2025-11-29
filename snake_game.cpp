@@ -147,14 +147,12 @@ namespace myecs {
     auto& sparse = myecs::storage<component>::sparse;
     auto& reverse_sparse = myecs::storage<component>::reverse_sparse;
     auto last_component_index = myecs::storage<component>::size - 1;
-    auto& last_component_entity_id = myecs::storage<component>::reverse_sparse[last_component_index];
-
+    auto last_component_entity_id = myecs::storage<component>::reverse_sparse[last_component_index];
     
+    myecs::delete_component<component>(myecs::storage<component>::pointer, sparse[id]); // from "generated_components_delete.hpp"
 
     sparse[last_component_entity_id] = sparse[id];
     reverse_sparse[sparse[id]] = last_component_entity_id;
-    
-    myecs::delete_component<component>(myecs::storage<component>::pointer, sparse[id]); // from "generated_components_delete.hpp"
 
     //myecs::storage<component>sparse[myecs::storage<component>::reverse_sparse[myecs::storage<component>::size - 1] = myecs::storage<component>::sparse[id];
 
