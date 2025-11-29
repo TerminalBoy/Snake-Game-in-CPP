@@ -26,6 +26,7 @@
 #include <string>
 #include <array>
 #include <unordered_map>
+#include <limits>
 
 #include "Dependencies/SFML/include/SFML/Graphics.hpp" // i am sorry for this mess, but the library has hard coded the "<SFML/Graphics/**>" paths
 #include "Dependencies/Custom_ECS/memory.hpp"
@@ -71,6 +72,8 @@
 
 static entity GLOBAL_ENTITY_COUNTER = 0; 
 
+constexpr std::size_t INVALID_INDEX = std::numeric_limits<std::size_t>::max();
+
 // COMPONENTS :
  
 // defined in "components.hpp"
@@ -97,6 +100,8 @@ static entity GLOBAL_ENTITY_COUNTER = 0;
 
 namespace myecs {
   
+  
+
   // A new way to store metadata 
   // completely elimininates, function statics' guard checks,
   // increasing prefomance exponentially in large ecs data and systems
@@ -115,7 +120,7 @@ namespace myecs {
   template <typename component>
   void sparse_allocator(entity& id, std::size_t corresponding_comp_index) { // allocates and links the values
     myecs::storage<component>::sparse.resize(GLOBAL_ENTITY_COUNTER);
-    myecs::storage<component>::reverse_sparse.resize(GLOBAL_ENTITY_COUNTER);
+    myecs::storage<component>::reverse_sparse.resize(myecs::storage<component>::size);
     myecs::storage<component>::sparse[id] = corresponding_comp_index;
     myecs::storage<component>::reverse_sparse[corresponding_comp_index] = id;
   }
@@ -144,20 +149,31 @@ namespace myecs {
   template <typename component>
   void remove_comp_from(entity& id) {
     
-    auto& sparse = myecs::storage<component>::sparse;
-    auto& reverse_sparse = myecs::storage<component>::reverse_sparse;
-    auto last_component_index = myecs::storage<component>::size - 1;
-    auto last_component_entity_id = myecs::storage<component>::reverse_sparse[last_component_index];
+    myecs::d_array<std::size_t>& sparse = myecs::storage<component>::sparse;
+    myecs::d_array<std::size_t>& reverse_sparse = myecs::storage<component>::reverse_sparse;
     
-    myecs::delete_component<component>(myecs::storage<component>::pointer, sparse[id]); // from "generated_components_delete.hpp"
+    std::size_t component_remove_index = sparse[id];
+    std::size_t component_last_index_bd = myecs::storage<component>::size - 1; //_bd = before deletion
+    std::size_t entity_id_at_last_component_bd = reverse_sparse[component_last_index_bd]; //_bd = before deletion
+    std::size_t entity_id_at_component_remove_index = reverse_sparse[component_remove_index];
 
-    sparse[last_component_entity_id] = sparse[id];
-    reverse_sparse[sparse[id]] = last_component_entity_id;
-
-    //myecs::storage<component>sparse[myecs::storage<component>::reverse_sparse[myecs::storage<component>::size - 1] = myecs::storage<component>::sparse[id];
-
-    
-    sparse[id] = myecs::storage<component>::size;
+    if (component_remove_index != component_last_index_bd) {
+      // deleting component at component_remove_index
+      myecs::delete_component(myecs::storage<component>::pointer, component_remove_index); // from "generated_components_delete.hpp"
+      
+      // updating maps of deleted components
+      sparse[id] = INVALID_INDEX;
+      reverse_sparse[component_last_index_bd] = INVALID_INDEX; // not updating reverse_sparse[component_remove_index] because at the place of that removed old component, last component will be copied
+       
+      // updating maps of shifted components 
+      sparse[entity_id_at_last_component_bd] = component_remove_index;
+      reverse_sparse[component_remove_index] = entity_id_at_last_component_bd;
+    }
+    else {
+      myecs::delete_component(myecs::storage<component>::pointer, component_remove_index); // from "generated_components_delete.hpp"
+      sparse[id] = INVALID_INDEX;
+      reverse_sparse[component_last_index_bd] = INVALID_INDEX;
+    }
     myecs::storage<component>::size--;
   }
 
