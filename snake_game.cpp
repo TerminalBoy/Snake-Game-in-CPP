@@ -27,6 +27,10 @@
 #include <array>
 #include <unordered_map>
 #include <limits>
+#include <cassert>
+
+#include <algorithm>
+#include <execution>
 
 #include "Dependencies/SFML/include/SFML/Graphics.hpp" // i am sorry for this mess, but the library has hard coded the "<SFML/Graphics/**>" paths
 #include "Dependencies/Custom_ECS/memory.hpp"
@@ -118,9 +122,27 @@ namespace myecs {
   };
  
   template <typename component>
-  void sparse_allocator(entity& id, std::size_t corresponding_comp_index) { // allocates and links the values
+  void sparse_allocator(const entity& id, std::size_t corresponding_comp_index) { // allocates and links the values
+    std::size_t old_reverse_sparse_size = myecs::storage<component>::reverse_sparse.size();
+    std::size_t old_sparse_size = myecs::storage<component>::sparse.size();
     myecs::storage<component>::sparse.resize(GLOBAL_ENTITY_COUNTER);
     myecs::storage<component>::reverse_sparse.resize(myecs::storage<component>::size);
+    
+    // trying multithreading, i recently got introcuded to this concept
+    std::fill(
+      std::execution::par_unseq, 
+      myecs::storage<component>::sparse.begin() + old_sparse_size, 
+      myecs::storage<component>::sparse.end(), 
+      INVALID_INDEX
+    );
+
+    std::fill(
+      std::execution::par_unseq,
+      myecs::storage<component>::reverse_sparse.begin() + old_reverse_sparse_size,
+      myecs::storage<component>::reverse_sparse.end(),
+      INVALID_INDEX
+    );
+
     myecs::storage<component>::sparse[id] = corresponding_comp_index;
     myecs::storage<component>::reverse_sparse[corresponding_comp_index] = id;
   }
@@ -134,21 +156,24 @@ namespace myecs {
   }
 
   template <typename component> // helper only, no need to call explictly
-  inline void entity_component_linker(entity& id, std::size_t corresponding_comp_index) {
+  inline void entity_component_linker(const entity& id, std::size_t corresponding_comp_index) {
     sparse_allocator<component>(id, corresponding_comp_index);
   }
 
  
   template <typename component>
-  void add_comp_to(entity& id) { // third step
+  void add_comp_to(const entity& id) { // third step
+    assert((id >= myecs::storage<component>::sparse.size() || myecs::storage<component>::sparse[id] == INVALID_INDEX) && "Component already exists for the provided entity id");
     myecs::create_component(myecs::storage<component>::pointer); // from "generated_components_create.hpp"
     myecs::storage<component>::size++;
     entity_component_linker<component>(id, myecs::storage<component>::size - 1); 
+  
   }
 
   template <typename component>
-  void remove_comp_from(entity& id) {
-    
+  void remove_comp_from(const entity& id) {
+    assert(id < GLOBAL_ENTITY_COUNTER && "The provided entity never existed");
+    assert((id < myecs::storage<component>::sparse.size() && myecs::storage<component>::sparse[id] != INVALID_INDEX) && "Component does not exist for the provided entity id");
     myecs::d_array<std::size_t>& sparse = myecs::storage<component>::sparse;
     myecs::d_array<std::size_t>& reverse_sparse = myecs::storage<component>::reverse_sparse;
     
@@ -178,10 +203,14 @@ namespace myecs {
   }
 
   template <typename component>
-  inline const std::size_t& comp_index_of(entity& id) {
+  inline const std::size_t& comp_index_of(const entity& id) {
     return myecs::storage<component>::sparse[id];
   }
 
+  template <typename component>
+  inline const std::size_t& entity_index_of(const std::size_t& comp_index) {
+    return myecs::storage<component>::reverse_sparse[comp_index];
+  }
 }
 
 
@@ -196,6 +225,7 @@ int main() {
   myecs::add_comp_to<comp::rectangle>(rectangle);
   myecs::add_comp_to<comp::position>(rectangle);
   myecs::add_comp_to<comp::position>(point);
+  // myecs::add_comp_to<comp::position>(rectangle); // can test the assertion
   myecs::add_comp_to<comp::segment>(point);
   // entity id == 0
   // component id == 0
@@ -229,6 +259,7 @@ int main() {
   std::cout << "before deletion \n sparse[point] = " << myecs::storage<comp::position>::sparse[point];
 
   myecs::remove_comp_from<comp::position>(point);
+  // myecs::remove_comp_from<comp::position>(5000); // can test assertion
   
 
   std::cout << " \n after deletion \n sparse[point] = " << myecs::storage<comp::position>::sparse[point];
