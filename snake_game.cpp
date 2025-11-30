@@ -77,7 +77,7 @@
 static entity GLOBAL_ENTITY_COUNTER = 0; 
 
 constexpr std::size_t INVALID_INDEX = std::numeric_limits<std::size_t>::max();
-
+constexpr std::size_t MULTITHREADING_SEED = 50000; // (no. of allocations )from the threshold where multithreading should start
 // COMPONENTS :
  
 // defined in "components.hpp"
@@ -125,23 +125,51 @@ namespace myecs {
   void sparse_allocator(const entity& id, std::size_t corresponding_comp_index) { // allocates and links the values
     std::size_t old_reverse_sparse_size = myecs::storage<component>::reverse_sparse.size();
     std::size_t old_sparse_size = myecs::storage<component>::sparse.size();
-    myecs::storage<component>::sparse.resize(GLOBAL_ENTITY_COUNTER);
-    myecs::storage<component>::reverse_sparse.resize(myecs::storage<component>::size);
+    
+
+    // I dont know why guards, may it bring peace my mind
+    if (old_sparse_size < GLOBAL_ENTITY_COUNTER)
+      myecs::storage<component>::sparse.resize(GLOBAL_ENTITY_COUNTER);
+    
+    if (old_reverse_sparse_size < myecs::storage<component>::size)
+      myecs::storage<component>::reverse_sparse.resize(myecs::storage<component>::size);
     
     // trying multithreading, i recently got introcuded to this concept
-    std::fill(
-      std::execution::par_unseq, 
-      myecs::storage<component>::sparse.begin() + old_sparse_size, 
-      myecs::storage<component>::sparse.end(), 
-      INVALID_INDEX
-    );
+    if (GLOBAL_ENTITY_COUNTER - old_sparse_size >= MULTITHREADING_SEED) { // guards for where multithreading is not required (thread safety) preventing undefined behavior
+      //std::cerr << "\nYes multithreading\n";
+      std::fill(
+        std::execution::par_unseq,
+        myecs::storage<component>::sparse.begin() + old_sparse_size,
+        myecs::storage<component>::sparse.end(),
+        INVALID_INDEX
+      );
+    }
+    else { // no multithreading
+      //std::cerr << "\nNo multithreading\n";
+      std::fill(
+        myecs::storage<component>::sparse.begin() + old_sparse_size,
+        myecs::storage<component>::sparse.end(),
+        INVALID_INDEX
+      );
+    }
 
-    std::fill(
-      std::execution::par_unseq,
-      myecs::storage<component>::reverse_sparse.begin() + old_reverse_sparse_size,
-      myecs::storage<component>::reverse_sparse.end(),
-      INVALID_INDEX
-    );
+    if (GLOBAL_ENTITY_COUNTER - old_reverse_sparse_size >= MULTITHREADING_SEED) {
+      //std::cerr << "\nYes multithreading\n";
+      std::fill(
+        std::execution::par_unseq,
+        myecs::storage<component>::reverse_sparse.begin() + old_reverse_sparse_size,
+        myecs::storage<component>::reverse_sparse.end(),
+        INVALID_INDEX
+      );
+    }
+    else {
+      //std::cerr << "\nNo multithreading\n";
+      std::fill(
+        myecs::storage<component>::reverse_sparse.begin() + old_reverse_sparse_size,
+        myecs::storage<component>::reverse_sparse.end(),
+        INVALID_INDEX
+      );
+    }
 
     myecs::storage<component>::sparse[id] = corresponding_comp_index;
     myecs::storage<component>::reverse_sparse[corresponding_comp_index] = id;
@@ -245,7 +273,7 @@ int main() {
 
   std::cout << "rectangle height: " << myecs::storage<comp::rectangle>::pointer->height[myecs::comp_index_of<comp::rectangle>(rectangle)] << std::endl;
   std::cout << "rectangle component id at entity id (rectangle): " << myecs::comp_index_of<comp::rectangle>(rectangle) << std::endl;
-  std::cout << "point component id at entity id (point): " << myecs::comp_index_of<comp::rectangle>(point) << std::endl;
+  std::cout << "point component id at entity id (point): " << myecs::comp_index_of<comp::position>(point) << std::endl;
   std::cout << "entity id (rectangle): " << rectangle << std::endl;
   std::cout << "entity id (point): " << point << std::endl;
 
