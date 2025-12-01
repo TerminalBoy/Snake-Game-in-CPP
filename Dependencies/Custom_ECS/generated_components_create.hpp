@@ -23,4 +23,7 @@ void create_component<comp::color>(std::unique_ptr<comp::color>& pointer);
  
 template <>
 void create_component<comp::segment>(std::unique_ptr<comp::segment>& pointer);
+ 
+template <>
+void create_component<comp::physics>(std::unique_ptr<comp::physics>& pointer);
 }

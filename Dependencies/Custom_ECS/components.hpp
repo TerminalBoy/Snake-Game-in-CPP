@@ -23,11 +23,17 @@ namespace comp {
   };
 
   struct color {
-    myecs::d_array<sf::Color> value;
+    myecs::d_array<std::uint8_t> r;
+    myecs::d_array<std::uint8_t> g;
+    myecs::d_array<std::uint8_t> b;
   };
 
   struct segment {
     myecs::d_array<entity> obj;
+  };
+
+  struct physics {
+    myecs::d_array<float> speed;
   };
 
 }

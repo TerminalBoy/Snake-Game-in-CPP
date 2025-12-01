@@ -232,18 +232,30 @@ namespace myecs {
 
   template <typename component>
   inline const std::size_t& comp_index_of(const entity& id) {
+    assert(id < myecs::storage<component>::sparse.size() && "Entity out of bounds of saprse");
     return myecs::storage<component>::sparse[id];
   }
 
   template <typename component>
   inline const std::size_t& entity_index_of(const std::size_t& comp_index) {
+    assert(comp_index < myecs::storage<component>::reverse_sparse.size() && "Entity out of bounds of saprse");
     return myecs::storage<component>::reverse_sparse[comp_index];
   }
 }
 
 
+namespace mygame {
+
+  void draw_snake(sf::RenderWindow& window, const entity& snake_head_entity) {
+    for (int i = 0; i < myecs::storage<comp::segment>::pointer->obj.size(); i++) {
+      window.draw(myecs::storage<comp::rectangle>::shape[myecs::comp_index_of<comp::rectangle>()])
+    }
+  }
+}
+
 
 int main() {
+  /*
   entity rectangle = myecs::create_entity();
   entity point = myecs::create_entity();
 
@@ -300,6 +312,44 @@ int main() {
     std::cout << "comp::position' x: " << myecs::storage<comp::position>::pointer->x[i] << std::endl;
     std::cout << "comp::position' y: " << myecs::storage<comp::position>::pointer->y[i] << std::endl;
   }
+  */
+  
+  constexpr std::uint32_t cell_width = 20;
+  constexpr std::uint32_t cell_height = 20;
+  constexpr std::uint32_t width_multiplier = 35;
+  constexpr std::uint32_t height_multiplier = 25;
+  const std::string game_window_title = "Snake Game in ECS github@TerminalBoy";
+
+  sf::RectangleShape snake_body_shape;
+  sf::CircleShape snake_food_shape;
+
+  sf::RenderWindow game_window(sf::VideoMode(cell_width * width_multiplier, cell_height * height_multiplier), game_window_title);
+
+  entity snake_food = myecs::create_entity();
+  entity snake_head = myecs::create_entity();
+
+  myecs::add_comp_to<comp::position>(snake_food);
+  myecs::add_comp_to<comp::position>(snake_head);
+
+  myecs::add_comp_to<comp::rectangle>(snake_head);
+  myecs::add_comp_to<comp::circle>(snake_food);
+
+  // game loop
+
+  while (game_window.isOpen()) {
+
+    sf::Event event;
+    while (game_window.pollEvent(event)) {
+      if (event.type == sf::Event::Closed) game_window.close();
+    }
+
+
+
+  }
+
+  // ~game loop
+
+
 
   return 0;
 }

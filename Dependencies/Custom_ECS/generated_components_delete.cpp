@@ -36,13 +36,23 @@ void myecs::delete_component<comp::circle>(std::unique_ptr<comp::circle>& pointe
  
 template <>
 void myecs::delete_component<comp::color>(std::unique_ptr<comp::color>& pointer, std::size_t& index){
-  pointer->value[index] = pointer->value[pointer->value.size() - 1];
-  pointer->value.pop_back();
+  pointer->r[index] = pointer->r[pointer->r.size() - 1];
+  pointer->r.pop_back();
+  pointer->g[index] = pointer->g[pointer->g.size() - 1];
+  pointer->g.pop_back();
+  pointer->b[index] = pointer->b[pointer->b.size() - 1];
+  pointer->b.pop_back();
 }
  
 template <>
 void myecs::delete_component<comp::segment>(std::unique_ptr<comp::segment>& pointer, std::size_t& index){
   pointer->obj[index] = pointer->obj[pointer->obj.size() - 1];
   pointer->obj.pop_back();
+}
+ 
+template <>
+void myecs::delete_component<comp::physics>(std::unique_ptr<comp::physics>& pointer, std::size_t& index){
+  pointer->speed[index] = pointer->speed[pointer->speed.size() - 1];
+  pointer->speed.pop_back();
 }
 
