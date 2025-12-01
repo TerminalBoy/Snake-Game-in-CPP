@@ -244,11 +244,27 @@ namespace myecs {
 }
 
 
+#define comp_pointer(component_type_only) myecs::storage<component_type_only>::pointer
+#define comp_index_of_en(entity, component_type) myecs::comp_index_of<component_type>(entity)
+#define access(component_type, entity_id, element) myecs::storage<component_type>::pointer->element[myecs::comp_index_of<component_type>(entity_id)]
+
 namespace mygame {
 
-  void draw_snake(sf::RenderWindow& window, const entity& snake_head_entity) {
+  void draw_snake(sf::RenderWindow& window, const entity& snake_head_entity, sf::RectangleShape shape) {
+    
+    shape.setPosition(sf::Vector2f(
+      access(comp::position, snake_head_entity, x),
+      access(comp::position, snake_head_entity, y)
+    ));
+
+    window.draw(shape);
+
     for (int i = 0; i < myecs::storage<comp::segment>::pointer->obj.size(); i++) {
-      window.draw(myecs::storage<comp::rectangle>::shape[myecs::comp_index_of<comp::rectangle>()])
+      shape.setPosition(sf::Vector2f(
+        access(comp::position, access(comp::segment, snake_head_entity, obj), x),
+        access(comp::position, access(comp::segment, snake_head_entity, obj), y)
+      ));
+      
     }
   }
 }
