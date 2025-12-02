@@ -247,26 +247,46 @@ namespace myecs {
 #define comp_pointer(component_type_only) myecs::storage<component_type_only>::pointer
 #define comp_index_of_en(entity, component_type) myecs::comp_index_of<component_type>(entity)
 #define access(component_type, entity_id, element) myecs::storage<component_type>::pointer->element[myecs::comp_index_of<component_type>(entity_id)]
+#define access_fill(component_type, entity_id, element, value) myecs::storage<component_type>::pointer->element[myecs::comp_index_of<component_type>(entity_id)] = value
+
+
 
 namespace mygame {
 
-  void draw_snake(sf::RenderWindow& window, const entity& snake_head_entity, sf::RectangleShape shape) {
+  void draw_snake(sf::RenderWindow& window, const std::vector<entity>& snake, sf::RectangleShape& shape) { 
     
     shape.setPosition(sf::Vector2f(
-      access(comp::position, snake_head_entity, x),
-      access(comp::position, snake_head_entity, y)
+      access(comp::position, snake[0], x),
+      access(comp::position, snake[0], y)
     ));
+    window.draw(shape); // specialization for head, can be different for asthetics
 
-    window.draw(shape);
-
-    for (int i = 0; i < myecs::storage<comp::segment>::pointer->obj.size(); i++) {
+    // this is a hot loop, but sfml is too cold, i need to replace the OOPy sfml
+    const std::size_t hot_iteration = snake.size() - 1; // guranteed no change
+    for (std::size_t i = 1; i < hot_iteration; i++) {
       shape.setPosition(sf::Vector2f(
-        access(comp::position, access(comp::segment, snake_head_entity, obj), x),
-        access(comp::position, access(comp::segment, snake_head_entity, obj), y)
+        access(comp::position, snake[i], x),
+        access(comp::position, snake[i], y)
       ));
-      
+      window.draw(shape);
     }
   }
+
+  void make_snake(std::vector<entity>& snake, const std::uint16_t& size) {
+    assert(size != 0 && "Poor snake, you didnt give it a size and also took his head | size cannot be 0");
+    assert(snake.size() == 0 && "Please dont destroy another snake to create your own | snake array should be empty in order to create entities");
+    
+    snake.emplace_back(myecs::create_entity()); // head
+    myecs::add_comp_to<comp::position>(snake[snake.size() - 1]);
+    myecs::add_comp_to<comp::rectangle>(snake[snake.size() - 1]); // only the head will have rectangle info
+    
+    for (std::uint16_t i = 0; i < size - 1; i++) {
+      snake.emplace_back(myecs::create_entity());
+      myecs::add_comp_to<comp::position>(snake[snake.size() - 1]);
+    }
+  }
+
+
 }
 
 
@@ -342,14 +362,12 @@ int main() {
   sf::RenderWindow game_window(sf::VideoMode(cell_width * width_multiplier, cell_height * height_multiplier), game_window_title);
 
   entity snake_food = myecs::create_entity();
-  entity snake_head = myecs::create_entity();
+  
+  std::vector<entity> snake; // we will allot later
 
-  myecs::add_comp_to<comp::position>(snake_food);
-  myecs::add_comp_to<comp::position>(snake_head);
+  mygame::make_snake(snake, 10); // entities of the bodies are created
 
-  myecs::add_comp_to<comp::rectangle>(snake_head);
-  myecs::add_comp_to<comp::circle>(snake_food);
-
+ 
   // game loop
 
   while (game_window.isOpen()) {

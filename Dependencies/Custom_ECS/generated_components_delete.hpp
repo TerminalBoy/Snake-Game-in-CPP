@@ -22,8 +22,5 @@ template <>
 void delete_component<comp::color>(std::unique_ptr<comp::color>& pointer, std::size_t& index);
  
 template <>
-void delete_component<comp::segment>(std::unique_ptr<comp::segment>& pointer, std::size_t& index);
- 
-template <>
 void delete_component<comp::physics>(std::unique_ptr<comp::physics>& pointer, std::size_t& index);
 }

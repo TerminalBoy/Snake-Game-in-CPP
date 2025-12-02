@@ -22,8 +22,6 @@ void myecs::delete_component<comp::rectangle>(std::unique_ptr<comp::rectangle>& 
   pointer->width.pop_back();
   pointer->height[index] = pointer->height[pointer->height.size() - 1];
   pointer->height.pop_back();
-  pointer->shape[index] = pointer->shape[pointer->shape.size() - 1];
-  pointer->shape.pop_back();
 }
  
 template <>
@@ -42,12 +40,6 @@ void myecs::delete_component<comp::color>(std::unique_ptr<comp::color>& pointer,
   pointer->g.pop_back();
   pointer->b[index] = pointer->b[pointer->b.size() - 1];
   pointer->b.pop_back();
-}
- 
-template <>
-void myecs::delete_component<comp::segment>(std::unique_ptr<comp::segment>& pointer, std::size_t& index){
-  pointer->obj[index] = pointer->obj[pointer->obj.size() - 1];
-  pointer->obj.pop_back();
 }
  
 template <>

@@ -18,7 +18,6 @@ template <>
 void myecs::create_component<comp::rectangle>(std::unique_ptr<comp::rectangle>& pointer){
   pointer->width.emplace_back();
   pointer->height.emplace_back();
-  pointer->shape.emplace_back();
 }
  
 template <>
@@ -32,11 +31,6 @@ void myecs::create_component<comp::color>(std::unique_ptr<comp::color>& pointer)
   pointer->r.emplace_back();
   pointer->g.emplace_back();
   pointer->b.emplace_back();
-}
- 
-template <>
-void myecs::create_component<comp::segment>(std::unique_ptr<comp::segment>& pointer){
-  pointer->obj.emplace_back();
 }
  
 template <>

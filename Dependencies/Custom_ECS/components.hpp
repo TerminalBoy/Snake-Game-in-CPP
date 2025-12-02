@@ -14,7 +14,6 @@ namespace comp {
   struct rectangle {
     myecs::d_array<float> width;
     myecs::d_array<float> height;
-    myecs::d_array<sf::RectangleShape> shape;
   };
 
   struct circle {
@@ -28,10 +27,7 @@ namespace comp {
     myecs::d_array<std::uint8_t> b;
   };
 
-  struct segment {
-    myecs::d_array<entity> obj;
-  };
-
+ 
   struct physics {
     myecs::d_array<float> speed;
   };
