@@ -23,7 +23,6 @@ void myecs::create_component<comp::rectangle>(std::unique_ptr<comp::rectangle>& 
 template <>
 void myecs::create_component<comp::circle>(std::unique_ptr<comp::circle>& pointer){
   pointer->radius.emplace_back();
-  pointer->shape.emplace_back();
 }
  
 template <>
@@ -36,5 +35,6 @@ void myecs::create_component<comp::color>(std::unique_ptr<comp::color>& pointer)
 template <>
 void myecs::create_component<comp::physics>(std::unique_ptr<comp::physics>& pointer){
   pointer->speed.emplace_back();
+  pointer->direction.emplace_back();
 }
 

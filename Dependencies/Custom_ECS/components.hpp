@@ -18,7 +18,6 @@ namespace comp {
 
   struct circle {
     myecs::d_array<float> radius;
-    myecs::d_array<sf::CircleShape> shape;
   };
 
   struct color {
@@ -27,9 +26,9 @@ namespace comp {
     myecs::d_array<std::uint8_t> b;
   };
 
- 
   struct physics {
     myecs::d_array<float> speed;
+    myecs::d_array<float> direction;
   };
 
 }

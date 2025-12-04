@@ -252,6 +252,16 @@ namespace myecs {
 
 
 namespace mygame {
+  
+  std::size_t ui = 0; // universal declarations for hot calls, avoids branch prediction
+  std::size_t usize = 0; 
+
+  constexpr std::uint32_t cell_width = 20;
+  constexpr std::uint32_t cell_height = 20;
+  constexpr float direction_left = 0;
+  constexpr float direction_right = 1;
+  constexpr float direction_up = 2;
+  constexpr float direction_down = 3;
 
   //template <typename T, typename... args>
   struct renderables{
@@ -260,7 +270,12 @@ namespace mygame {
   };
 
   static
-  void draw_entites(sf::RenderWindow& window, const std::vector<entity>& entities) { 
+    void set_snake_direction(const entity& snake_head, const float& snake_direction) {
+    ecs_access(comp::physics, snake_head, direction) = snake_direction;
+  }
+
+  static
+  void update_snake_vertices(const std::vector<entity>& entities) { 
     std::cout << "entitiy/ snake size : " << entities.size() << std::endl;
     std::size_t entities_size = entities.size();
     
@@ -296,9 +311,6 @@ namespace mygame {
       renderables::snake[base + 3].color = sf::Color::Green;
     }
     
-    
-    window.draw(renderables::snake); 
-
   }
 
   static
@@ -332,7 +344,16 @@ namespace mygame {
     }
   }
 
-
+  // hot function call (more than 60 times per second)
+  inline void move_snake(const std::vector<entity>& snake) {
+    usize = snake.size();
+    if (ecs_access(comp::physics, snake[0], direction) == direction_right) {
+      for (ui = 0; ui < usize; ui++) {
+        ecs_access(comp::position, snake[ui], x) += cell_width;
+      }
+    }
+  }
+  
 }
 
 
@@ -396,30 +417,31 @@ int main() {
   }
   */
   
-  constexpr std::uint32_t cell_width = 20;
-  constexpr std::uint32_t cell_height = 20;
+  
   constexpr std::uint32_t width_multiplier = 35;
   constexpr std::uint32_t height_multiplier = 25;
+  
   const std::string game_window_title = "Snake Game in ECS github@TerminalBoy";
+
 
   sf::RectangleShape snake_body_shape;
   sf::CircleShape snake_food_shape;
 
-  sf::RenderWindow game_window(sf::VideoMode(cell_width * width_multiplier, cell_height * height_multiplier), game_window_title);
+  sf::RenderWindow game_window(sf::VideoMode(mygame::cell_width * width_multiplier, mygame::cell_height * height_multiplier), game_window_title);
 
   entity snake_food = myecs::create_entity();
-  
   std::vector<entity> snake; // we will allot later
 
   mygame::make_snake(snake, 10); // entities of the bodies are created
-  mygame::init_snake(snake, cell_width, cell_height);
-  mygame::draw_entites(game_window, snake);
+  // physics data for entities
+  myecs::add_comp_to<comp::physics>(snake[0]);
+  
+
+  mygame::init_snake(snake, mygame::cell_width, mygame::cell_height);
+  mygame::set_snake_direction(snake[0], mygame::direction_right);
+  mygame::update_snake_vertices(snake);
  
   // game loop
-
-  sf::RectangleShape sshape(sf::Vector2f(200, 200));
-  sshape.setPosition( sf::Vector2f(0,0) );
-  sshape.setFillColor(sf::Color::Green);
   while (game_window.isOpen()) {
 
     sf::Event event;
@@ -428,9 +450,7 @@ int main() {
     }
 
     game_window.clear(sf::Color::Black);
-    //game_window.draw(mygame::renderables::snake);
-    //game_window.draw(sshape);
-    mygame::draw_entites(game_window, snake);
+    game_window.draw(mygame::renderables::snake);
     game_window.display();
   }
 
