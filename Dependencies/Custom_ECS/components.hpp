@@ -1,8 +1,8 @@
 #pragma once
 
 #include "memory.hpp"
-#include "../SFML/include/SFML/Graphics.hpp"
-
+//#include "../SFML/include/SFML/Graphics.hpp"
+#include <SFML/Graphics.hpp>
 // ##-START_PARSE-##
 
 namespace comp {

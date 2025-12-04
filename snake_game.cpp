@@ -31,8 +31,8 @@
 
 #include <algorithm>
 #include <execution>
-
-#include "Dependencies/SFML/include/SFML/Graphics.hpp" // i am sorry for this mess, but the library has hard coded the "<SFML/Graphics/**>" paths
+#include <SFML/Graphics.hpp>
+//#include "Dependencies/SFML/include/SFML/Graphics.hpp" // i am sorry for this mess, but the library has hard coded the "<SFML/Graphics/**>" paths
 #include "Dependencies/Custom_ECS/memory.hpp"
 #include "Dependencies/Custom_ECS/components.hpp"
 #include "Dependencies/Custom_ECS/generated_components_create.hpp"
@@ -314,17 +314,21 @@ namespace mygame {
   }
 
   static
-  void make_snake(std::vector<entity>& snake, const std::uint16_t& size) {
+  void make_snake(std::vector<entity>& snake, std::vector<entity>& followup_buffer, const std::uint16_t& size) {
     assert(size != 0 && "Poor snake, you didnt give it a size and also took his head | size cannot be 0");
     assert(snake.size() == 0 && "Please dont destroy another snake to create your own | snake array should be empty in order to create entities");
     
+    followup_buffer.emplace_back();
     snake.emplace_back(myecs::create_entity()); // head
     myecs::add_comp_to<comp::position>(snake[snake.size() - 1]);
     myecs::add_comp_to<comp::rectangle>(snake[snake.size() - 1]); // only the head will have rectangle info
+    myecs::add_comp_to<comp::physics>(snake[snake.size() - 1]);
     
     for (std::uint16_t i = 0; i < size - 1; i++) {
+      followup_buffer.emplace_back(myecs::create_entity());
       snake.emplace_back(myecs::create_entity());
       myecs::add_comp_to<comp::position>(snake[snake.size() - 1]);
+      myecs::add_comp_to<comp::position>(followup_buffer[followup_buffer.size() - 1]);
     }
   }
   
@@ -341,20 +345,53 @@ namespace mygame {
     for (i = 0; i < entities_size; i++) {
       ecs_access(comp::position, entities[i], x) = static_cast<std::size_t>(cell_width) * ((entities_size - i) - 1);
       ecs_access(comp::position, entities[i], y) = 0;
-    }
+    } 
   }
 
   // hot function call (more than 60 times per second)
-  inline void move_snake(const std::vector<entity>& snake) {
+  inline void move_snake(const std::vector<entity>& snake, const std::vector<entity> followup_buffer) {
     usize = snake.size();
     if (ecs_access(comp::physics, snake[0], direction) == direction_right) {
-      for (ui = 0; ui < usize; ui++) {
-        ecs_access(comp::position, snake[ui], x) += cell_width;
+      ecs_access(comp::position, snake[0], x) += cell_width;
+      for (ui = 1; ui < usize; ui++) {
+        ecs_access(comp::position, snake[ui], x) = ecs_access(comp::position, followup_buffer[ui], x);
+        ecs_access(comp::position, snake[ui], y) = ecs_access(comp::position, followup_buffer[ui], y);
       }
+    
+    } else if (ecs_access(comp::physics, snake[0], direction) == direction_left) {
+      ecs_access(comp::position, snake[0], x) -= cell_width;
+      for (ui = 1; ui < usize; ui++) {
+        ecs_access(comp::position, snake[ui], x) = ecs_access(comp::position, followup_buffer[ui], x);
+        ecs_access(comp::position, snake[ui], y) = ecs_access(comp::position, followup_buffer[ui], y);
+      }
+    
+    } else if (ecs_access(comp::physics, snake[0], direction) == direction_up){
+      ecs_access(comp::position, snake[0], y) -= cell_height;
+      for (ui = 1; ui < usize; ui++) {
+        ecs_access(comp::position, snake[ui], x) = ecs_access(comp::position, followup_buffer[ui], x);
+        ecs_access(comp::position, snake[ui], y) = ecs_access(comp::position, followup_buffer[ui], y);
+      }
+  
+    } else if (ecs_access(comp::physics, snake[0], direction) == direction_down){
+      ecs_access(comp::position, snake[0], y) += cell_height;
+      for (ui = 1; ui < usize; ui++) {
+        ecs_access(comp::position, snake[ui], x) = ecs_access(comp::position, followup_buffer[ui], x);
+        ecs_access(comp::position, snake[ui], y) = ecs_access(comp::position, followup_buffer[ui], y);
+      }
+    }
+    
+  } // end - move_snake()
+  
+  
+  inline void update_followup(const std::vector<entity>& snake, const std::vector<entity>& followup_buffer){
+    usize = snake.size();
+    for (ui = 0; ui < usize; ui++) {
+      ecs_access(comp::position, followup_buffer[ui], x) = ecs_access(comp::position, snake[ui], x);
+      ecs_access(comp::position, followup_buffer[ui], y) = ecs_access(comp::position, snake[ui], y);
     }
   }
   
-}
+} // end of namespace mygame
 
 
 int main() {
@@ -431,14 +468,14 @@ int main() {
 
   entity snake_food = myecs::create_entity();
   std::vector<entity> snake; // we will allot later
-
-  mygame::make_snake(snake, 10); // entities of the bodies are created
-  // physics data for entities
-  myecs::add_comp_to<comp::physics>(snake[0]);
+  std::vector<entity> followup_buffer;
   
-
+  mygame::make_snake(snake, followup_buffer, 10); // entities of the bodies are created
   mygame::init_snake(snake, mygame::cell_width, mygame::cell_height);
   mygame::set_snake_direction(snake[0], mygame::direction_right);
+  
+  mygame::update_followup(snake, followup_buffer);
+  
   mygame::update_snake_vertices(snake);
  
   // game loop
@@ -448,7 +485,9 @@ int main() {
     while (game_window.pollEvent(event)) {
       if (event.type == sf::Event::Closed) game_window.close();
     }
-
+    
+    
+    mygame::update_followup(snake, followup_buffer);
     game_window.clear(sf::Color::Black);
     game_window.draw(mygame::renderables::snake);
     game_window.display();
