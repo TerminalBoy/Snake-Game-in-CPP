@@ -246,32 +246,62 @@ namespace myecs {
 
 #define comp_pointer(component_type_only) myecs::storage<component_type_only>::pointer
 #define comp_index_of_en(entity, component_type) myecs::comp_index_of<component_type>(entity)
-#define access(component_type, entity_id, element) myecs::storage<component_type>::pointer->element[myecs::comp_index_of<component_type>(entity_id)]
+#define ecs_access(component_type, entity_id, element) myecs::storage<component_type>::pointer->element[myecs::comp_index_of<component_type>(entity_id)]
 #define access_fill(component_type, entity_id, element, value) myecs::storage<component_type>::pointer->element[myecs::comp_index_of<component_type>(entity_id)] = value
 
 
 
 namespace mygame {
 
-  void draw_snake(sf::RenderWindow& window, const std::vector<entity>& snake, sf::RectangleShape& shape) { 
-    
-    shape.setPosition(sf::Vector2f(
-      access(comp::position, snake[0], x),
-      access(comp::position, snake[0], y)
-    ));
-    window.draw(shape); // specialization for head, can be different for asthetics
+  //template <typename T, typename... args>
+  struct renderables{
+    inline static sf::VertexArray snake;
+    inline static sf::VertexArray snake_food;
+  };
 
-    // this is a hot loop, but sfml is too cold, i need to replace the OOPy sfml
-    const std::size_t hot_iteration = snake.size() - 1; // guranteed no change
-    for (std::size_t i = 1; i < hot_iteration; i++) {
-      shape.setPosition(sf::Vector2f(
-        access(comp::position, snake[i], x),
-        access(comp::position, snake[i], y)
-      ));
-      window.draw(shape);
+  static
+  void draw_entites(sf::RenderWindow& window, const std::vector<entity>& entities) { 
+    std::cout << "entitiy/ snake size : " << entities.size() << std::endl;
+    std::size_t entities_size = entities.size();
+    
+    renderables::snake.setPrimitiveType(sf::Quads);
+    renderables::snake.resize(entities_size * 4);
+    
+    std::size_t base = 0;
+    std::size_t i = 0;
+
+    const float& width = ecs_access(comp::rectangle, entities[0], width);
+    const float& height = ecs_access(comp::rectangle, entities[0], height);
+
+   
+    for (i = 0; i < entities_size; i++) {
+    
+      base = i * 4;
+
+      const float& x = ecs_access(comp::position, entities[i], x);
+      const float& y = ecs_access(comp::position, entities[i], y);
+      
+      renderables::snake[base + 0].position = { x, y }; // top left
+
+      renderables::snake[base + 1].position = { x + width, y };// top right
+
+      renderables::snake[base + 2].position = { x + width, y + height }; // bottom right
+
+      renderables::snake[base + 3].position = { x, y + height }; // bottom left
+      
+      // 
+      renderables::snake[base + 0].color = sf::Color::Green;
+      renderables::snake[base + 1].color = sf::Color::Green;
+      renderables::snake[base + 2].color = sf::Color::Green;
+      renderables::snake[base + 3].color = sf::Color::Green;
     }
+    
+    
+    window.draw(renderables::snake); 
+
   }
 
+  static
   void make_snake(std::vector<entity>& snake, const std::uint16_t& size) {
     assert(size != 0 && "Poor snake, you didnt give it a size and also took his head | size cannot be 0");
     assert(snake.size() == 0 && "Please dont destroy another snake to create your own | snake array should be empty in order to create entities");
@@ -283,6 +313,22 @@ namespace mygame {
     for (std::uint16_t i = 0; i < size - 1; i++) {
       snake.emplace_back(myecs::create_entity());
       myecs::add_comp_to<comp::position>(snake[snake.size() - 1]);
+    }
+  }
+  
+  static
+  void init_snake(std::vector<entity>& entities, const std::uint32_t& cell_width, const std::uint32_t& cell_height) {
+    //assert(size > 0 && "When grouping, size cannot be zero");
+    assert(entities.size() != 0 && "entity array cannot be empty");
+    
+    ecs_access(comp::rectangle, entities[0], width) = cell_width;
+    ecs_access(comp::rectangle, entities[0], height) = cell_height;
+    std::size_t entities_size = entities.size();
+    std::size_t i; // avoid branch guessing
+    
+    for (i = 0; i < entities_size; i++) {
+      ecs_access(comp::position, entities[i], x) = static_cast<std::size_t>(cell_width) * ((entities_size - i) - 1);
+      ecs_access(comp::position, entities[i], y) = 0;
     }
   }
 
@@ -366,10 +412,14 @@ int main() {
   std::vector<entity> snake; // we will allot later
 
   mygame::make_snake(snake, 10); // entities of the bodies are created
-
+  mygame::init_snake(snake, cell_width, cell_height);
+  mygame::draw_entites(game_window, snake);
  
   // game loop
 
+  sf::RectangleShape sshape(sf::Vector2f(200, 200));
+  sshape.setPosition( sf::Vector2f(0,0) );
+  sshape.setFillColor(sf::Color::Green);
   while (game_window.isOpen()) {
 
     sf::Event event;
@@ -377,8 +427,11 @@ int main() {
       if (event.type == sf::Event::Closed) game_window.close();
     }
 
-
-
+    game_window.clear(sf::Color::Black);
+    //game_window.draw(mygame::renderables::snake);
+    //game_window.draw(sshape);
+    mygame::draw_entites(game_window, snake);
+    game_window.display();
   }
 
   // ~game loop
