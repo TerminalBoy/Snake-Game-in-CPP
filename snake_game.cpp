@@ -24,8 +24,8 @@
 #include <cstdlib>  
 #include <vector>
 #include <string>
-#include <array>
-#include <unordered_map>
+//#include <array> - not in use
+//#include <unordered_map> - not in use
 #include <limits>
 #include <cassert>
 
@@ -123,6 +123,7 @@ namespace myecs {
  
   template <typename component>
   void sparse_allocator(const entity& id, std::size_t corresponding_comp_index) { // allocates and links the values
+    assert(id < GLOBAL_ENTITY_COUNTER && "The provided entity never existed");
     std::size_t old_reverse_sparse_size = myecs::storage<component>::reverse_sparse.size();
     std::size_t old_sparse_size = myecs::storage<component>::sparse.size();
     
@@ -185,13 +186,29 @@ namespace myecs {
 
   template <typename component> // helper only, no need to call explictly
   inline void entity_component_linker(const entity& id, std::size_t corresponding_comp_index) {
+    assert(id < GLOBAL_ENTITY_COUNTER && "The provided entity never existed");
     sparse_allocator<component>(id, corresponding_comp_index);
   }
 
  
   template <typename component>
+  bool has_component(const entity& id) { // (has branching) only to be used in asserts
+    assert(id < GLOBAL_ENTITY_COUNTER && "The provided entity never existed");
+    if (id < myecs::storage<component>::sparse.size() && myecs::storage<component>::sparse[id] != INVALID_INDEX) return true;
+    return false;
+  }
+
+  template <typename component>
+  bool has_entity(const std::size_t& comp_index) { // (has branching) only to be used in asserts
+    if (comp_index < myecs::storage<component>::reverse_sparse.size() && myecs::storage<component>::reverse_sparse[comp_index] != INVALID_INDEX) return true;
+    return false;
+  }
+
+  template <typename component>
   void add_comp_to(const entity& id) { // third step
-    assert((id >= myecs::storage<component>::sparse.size() || myecs::storage<component>::sparse[id] == INVALID_INDEX) && "Component already exists for the provided entity id");
+    //assert((id >= myecs::storage<component>::sparse.size() || myecs::storage<component>::sparse[id] == INVALID_INDEX) && "Component already exists for the provided entity id");
+    assert(id < GLOBAL_ENTITY_COUNTER && "The provided entity never existed");
+    assert(myecs::has_component<component>(id) == false && "Component already exists for the provided entity id");
     myecs::create_component(myecs::storage<component>::pointer); // from "generated_components_create.hpp"
     myecs::storage<component>::size++;
     entity_component_linker<component>(id, myecs::storage<component>::size - 1); 
@@ -201,7 +218,8 @@ namespace myecs {
   template <typename component>
   void remove_comp_from(const entity& id) {
     assert(id < GLOBAL_ENTITY_COUNTER && "The provided entity never existed");
-    assert((id < myecs::storage<component>::sparse.size() && myecs::storage<component>::sparse[id] != INVALID_INDEX) && "Component does not exist for the provided entity id");
+    //assert((id < myecs::storage<component>::sparse.size() && myecs::storage<component>::sparse[id] != INVALID_INDEX) && "Component does not exist for the provided entity id");
+    assert(myecs::has_component<component>(id) && "Component does not exist for the provided entity id");
     myecs::d_array<std::size_t>& sparse = myecs::storage<component>::sparse;
     myecs::d_array<std::size_t>& reverse_sparse = myecs::storage<component>::reverse_sparse;
     
@@ -230,15 +248,18 @@ namespace myecs {
     myecs::storage<component>::size--;
   }
 
+  
   template <typename component>
   inline const std::size_t& comp_index_of(const entity& id) {
-    assert(id < myecs::storage<component>::sparse.size() && "Entity out of bounds of saprse");
+    assert(id < GLOBAL_ENTITY_COUNTER && "The provided entity never existed");
+    assert(myecs::has_component<component>(id) && "Entity does not have the component");
     return myecs::storage<component>::sparse[id];
   }
 
   template <typename component>
   inline const std::size_t& entity_index_of(const std::size_t& comp_index) {
-    assert(comp_index < myecs::storage<component>::reverse_sparse.size() && "Entity out of bounds of saprse");
+    assert(comp_index < myecs::storage<component>::reverse_sparse.size() && "Component index out of bounds");
+    assert(myecs::has_entity<component>(comp_index) && "Component index does not have an entity");
     return myecs::storage<component>::reverse_sparse[comp_index];
   }
 }
@@ -454,7 +475,7 @@ int main() {
   }
   */
   
-  
+  /*
   constexpr std::uint32_t width_multiplier = 35;
   constexpr std::uint32_t height_multiplier = 25;
   
@@ -495,8 +516,34 @@ int main() {
 
   // ~game loop
 
+  */
+  
+  // tests 
+  entity var1 = myecs::create_entity();
+  entity var2 = myecs::create_entity();
+  entity var3 = myecs::create_entity();
+  entity var4 = myecs::create_entity();
 
+  // adding components
+  myecs::add_comp_to<comp::position>(var1);
+  myecs::add_comp_to<comp::position>(var3);
+  myecs::add_comp_to<comp::position>(var2);
+ // myecs::add_comp_to<comp::position>(var4);
+  
+  myecs::remove_comp_from<comp::position>(var3);
+  myecs::add_comp_to<comp::position>(var3);
 
+  std::cout << "myecs::has_component<comp::position>(var1) : " << myecs::has_component<comp::position>(var1) << std::endl;
+  std::cout << "myecs::has_component<comp::position>(var2) : " << myecs::has_component<comp::position>(var2) << std::endl;
+  std::cout << "myecs::has_component<comp::position>(var3) : " << myecs::has_component<comp::position>(var3) << std::endl;
+  std::cout << "myecs::has_component<comp::position>(var4) : " << myecs::has_component<comp::position>(var4) << std::endl;
+
+  std::cout << "myecs::has_entity<comp::position>(var1) : " << myecs::has_entity<comp::position>(myecs::comp_index_of<comp::position>(var1)) << std::endl;
+  std::cout << "myecs::has_entity<comp::position>(var2) : " << myecs::has_entity<comp::position>(myecs::comp_index_of<comp::position>(var2)) << std::endl;
+  std::cout << "myecs::has_entity<comp::position>(var3) : " << myecs::has_entity<comp::position>(myecs::comp_index_of<comp::position>(var3)) << std::endl;
+  std::cout << "myecs::has_entity<comp::position>(var4) : " << myecs::has_entity<comp::position>(myecs::comp_index_of<comp::position>(var4)) << std::endl;
+  
+  //std::cout << "myecs::comp_index_of<comp::position>(var4) : "; myecs::comp_index_of<comp::position>(var4);
   return 0;
 }
 
