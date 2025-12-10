@@ -338,12 +338,16 @@ namespace mygame {
   void make_snake(std::vector<entity>& snake, std::vector<entity>& followup_buffer, const std::uint16_t& size) {
     assert(size != 0 && "Poor snake, you didnt give it a size and also took his head | size cannot be 0");
     assert(snake.size() == 0 && "Please dont destroy another snake to create your own | snake array should be empty in order to create entities");
-    
-    followup_buffer.emplace_back();
+    assert(followup_buffer.size() == 0 && "Followup buffer should be empty");
+
+    followup_buffer.emplace_back(myecs::create_entity());
     snake.emplace_back(myecs::create_entity()); // head
+
+    myecs::add_comp_to<comp::position>(followup_buffer[followup_buffer.size() - 1]);
     myecs::add_comp_to<comp::position>(snake[snake.size() - 1]);
+
     myecs::add_comp_to<comp::rectangle>(snake[snake.size() - 1]); // only the head will have rectangle info
-    myecs::add_comp_to<comp::physics>(snake[snake.size() - 1]);
+    myecs::add_comp_to<comp::physics>(snake[snake.size() - 1]); // only the head will have physics info
     
     for (std::uint16_t i = 0; i < size - 1; i++) {
       followup_buffer.emplace_back(myecs::create_entity());
@@ -369,35 +373,52 @@ namespace mygame {
     } 
   }
 
+
+  inline void take_movement_input(const entity& id) {
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && ecs_access(comp::physics, id, direction) != mygame::direction_down)
+      ecs_access(comp::physics, id, direction) = mygame::direction_up;
+    
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down) && ecs_access(comp::physics, id, direction) != mygame::direction_up) 
+      ecs_access(comp::physics, id, direction) = mygame::direction_down;
+    
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) && ecs_access(comp::physics, id, direction) != mygame::direction_right) 
+      ecs_access(comp::physics, id, direction) = mygame::direction_left;
+
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) && ecs_access(comp::physics, id, direction) != mygame::direction_left) 
+      ecs_access(comp::physics, id, direction) = mygame::direction_right;
+  }
+
+
   // hot function call (more than 60 times per second)
   inline void move_snake(const std::vector<entity>& snake, const std::vector<entity> followup_buffer) {
     usize = snake.size();
+    mygame::take_movement_input(snake[0]);
     if (ecs_access(comp::physics, snake[0], direction) == direction_right) {
       ecs_access(comp::position, snake[0], x) += cell_width;
       for (ui = 1; ui < usize; ui++) {
-        ecs_access(comp::position, snake[ui], x) = ecs_access(comp::position, followup_buffer[ui], x);
-        ecs_access(comp::position, snake[ui], y) = ecs_access(comp::position, followup_buffer[ui], y);
+        ecs_access(comp::position, snake[ui], x) = ecs_access(comp::position, followup_buffer[ui - 1], x);
+        ecs_access(comp::position, snake[ui], y) = ecs_access(comp::position, followup_buffer[ui - 1], y);
       }
     
     } else if (ecs_access(comp::physics, snake[0], direction) == direction_left) {
       ecs_access(comp::position, snake[0], x) -= cell_width;
       for (ui = 1; ui < usize; ui++) {
-        ecs_access(comp::position, snake[ui], x) = ecs_access(comp::position, followup_buffer[ui], x);
-        ecs_access(comp::position, snake[ui], y) = ecs_access(comp::position, followup_buffer[ui], y);
+        ecs_access(comp::position, snake[ui], x) = ecs_access(comp::position, followup_buffer[ui - 1], x);
+        ecs_access(comp::position, snake[ui], y) = ecs_access(comp::position, followup_buffer[ui - 1], y);
       }
     
     } else if (ecs_access(comp::physics, snake[0], direction) == direction_up){
       ecs_access(comp::position, snake[0], y) -= cell_height;
       for (ui = 1; ui < usize; ui++) {
-        ecs_access(comp::position, snake[ui], x) = ecs_access(comp::position, followup_buffer[ui], x);
-        ecs_access(comp::position, snake[ui], y) = ecs_access(comp::position, followup_buffer[ui], y);
+        ecs_access(comp::position, snake[ui], x) = ecs_access(comp::position, followup_buffer[ui - 1], x);
+        ecs_access(comp::position, snake[ui], y) = ecs_access(comp::position, followup_buffer[ui - 1], y);
       }
   
     } else if (ecs_access(comp::physics, snake[0], direction) == direction_down){
       ecs_access(comp::position, snake[0], y) += cell_height;
       for (ui = 1; ui < usize; ui++) {
-        ecs_access(comp::position, snake[ui], x) = ecs_access(comp::position, followup_buffer[ui], x);
-        ecs_access(comp::position, snake[ui], y) = ecs_access(comp::position, followup_buffer[ui], y);
+        ecs_access(comp::position, snake[ui], x) = ecs_access(comp::position, followup_buffer[ui - 1], x);
+        ecs_access(comp::position, snake[ui], y) = ecs_access(comp::position, followup_buffer[ui - 1], y);
       }
     }
     
@@ -411,6 +432,8 @@ namespace mygame {
       ecs_access(comp::position, followup_buffer[ui], y) = ecs_access(comp::position, snake[ui], y);
     }
   }
+
+  
   
 } // end of namespace mygame
 
@@ -475,7 +498,7 @@ int main() {
   }
   */
   
-  /*
+  
   constexpr std::uint32_t width_multiplier = 35;
   constexpr std::uint32_t height_multiplier = 25;
   
@@ -498,7 +521,10 @@ int main() {
   mygame::update_followup(snake, followup_buffer);
   
   mygame::update_snake_vertices(snake);
- 
+  
+  game_window.setFramerateLimit(2);
+  //ecs_access(comp::physics, snake[0], direction) = mygame::direction_right;
+  
   // game loop
   while (game_window.isOpen()) {
 
@@ -508,6 +534,9 @@ int main() {
     }
     
     
+    mygame::move_snake(snake, followup_buffer);
+    mygame::update_snake_vertices(snake);
+
     mygame::update_followup(snake, followup_buffer);
     game_window.clear(sf::Color::Black);
     game_window.draw(mygame::renderables::snake);
@@ -516,8 +545,9 @@ int main() {
 
   // ~game loop
 
-  */
+
   
+  /*
   // tests 
   entity var1 = myecs::create_entity();
   entity var2 = myecs::create_entity();
@@ -544,6 +574,8 @@ int main() {
   std::cout << "myecs::has_entity<comp::position>(var4) : " << myecs::has_entity<comp::position>(myecs::comp_index_of<comp::position>(var4)) << std::endl;
   
   //std::cout << "myecs::comp_index_of<comp::position>(var4) : "; myecs::comp_index_of<comp::position>(var4);
+  */
+  
   return 0;
 }
 
