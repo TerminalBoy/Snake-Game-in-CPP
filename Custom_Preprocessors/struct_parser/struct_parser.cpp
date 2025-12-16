@@ -212,7 +212,7 @@ int main() {
   std::size_t element_counter = 0;
 
   while (std::getline(target_file, current_line)) {
-
+    current_line.erase(current_line.find_last_not_of("\r\n") + 1); // remove line endings regardless of platform 
     if (parsing_state == state::on) {
       if (current_line.find("namespace") != std::string::npos) {
         namespace_token.push_back(strip_namespace_name(current_line));
