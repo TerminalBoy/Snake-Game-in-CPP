@@ -63,7 +63,7 @@ std::string strip_element_name(std::string str) {
 
 }
 
-std::vector<std::string> cpp_make_emplace_backs(std::vector<std::string> struct_token, std::vector<std::string> element_token, std::unordered_map<std::size_t, std::size_t> link, std::string& namespace_name){
+std::vector<std::string> make_emplace_backs(std::vector<std::string> struct_token, std::vector<std::string> element_token, std::unordered_map<std::size_t, std::size_t> link, std::string& namespace_name){
   std::vector<std::string> res;
   std::string previous_struct = "";
 
@@ -72,19 +72,19 @@ std::vector<std::string> cpp_make_emplace_backs(std::vector<std::string> struct_
   res.push_back("#include <memory>");
   res.push_back("#include \"memory.hpp\"");
   res.push_back("#include \"components.hpp\"");
-  res.push_back("#include \"generated_components_create.hpp\"");
+  //res.push_back("#include \"generated_components_create.hpp\"");
   res.push_back("");
-  //res.push_back("namespace myecs {");
+  res.push_back("namespace myecs {"); // to the commit reader CHANGE: start of namespace
   res.push_back("");
   res.push_back("template <typename component>");
-  res.push_back("void myecs::create_component(std::unique_ptr<component>& pointer) {}");
+  res.push_back("void create_component(std::unique_ptr<component>& pointer) {}");
 
   for (int i = 0; i < element_token.size(); i++) {
     if (previous_struct != struct_token[link[i]]) {
       if (i != 0) res.push_back("}");
       res.push_back(" ");
       res.push_back("template <>");
-      res.push_back(std::string() + "void myecs::create_component<" + namespace_name + "::" + struct_token[link[i]] + ">(" + "std::unique_ptr<" + namespace_name + "::" + struct_token[link[i]] + ">&" + " pointer){");
+      res.push_back(std::string() + "void create_component<" + namespace_name + "::" + struct_token[link[i]] + ">(" + "std::unique_ptr<" + namespace_name + "::" + struct_token[link[i]] + ">&" + " pointer){");
       previous_struct = struct_token[link[i]];
     }
     
@@ -93,11 +93,11 @@ std::vector<std::string> cpp_make_emplace_backs(std::vector<std::string> struct_
   }
   res.push_back("}");
   res.push_back("");
-  //res.push_back("}")
+  res.push_back("}"); // end of namespace
   return res;
 }
 
-std::vector<std::string> cpp_make_deletion(std::vector<std::string> struct_token, std::vector<std::string> element_token, std::unordered_map<std::size_t, std::size_t> link, std::string& namespace_name) {
+std::vector<std::string> make_deletion(std::vector<std::string> struct_token, std::vector<std::string> element_token, std::unordered_map<std::size_t, std::size_t> link, std::string& namespace_name) {
 
   std::vector<std::string> res;
   std::string previous_struct = "";
@@ -107,19 +107,19 @@ std::vector<std::string> cpp_make_deletion(std::vector<std::string> struct_token
   res.push_back("#include <memory>");
   res.push_back("#include \"memory.hpp\"");
   res.push_back("#include \"components.hpp\"");
-  res.push_back("#include \"generated_components_delete.hpp\"");
+  //res.push_back("#include \"generated_components_delete.hpp\"");
   res.push_back("");
-  //res.push_back("namespace myecs {");
+  res.push_back("namespace myecs {"); // to the commit reader CHANGE: start of namespace
   res.push_back("");
   res.push_back("template <typename component>");
-  res.push_back("void myecs::delete_component(std::unique_ptr<component>& pointer, std::size_t& index) {}// can handle exceptions");
+  res.push_back("void delete_component(std::unique_ptr<component>& pointer, std::size_t& index) {}// can handle exceptions");
 
   for (int i = 0; i < element_token.size(); i++) {
     if (previous_struct != struct_token[link[i]]) {
       if (i != 0) res.push_back("}");
       res.push_back(" ");
       res.push_back("template <>");
-      res.push_back(std::string() + "void myecs::delete_component<" + namespace_name + "::" + struct_token[link[i]] + ">(" + "std::unique_ptr<" + namespace_name + "::" + struct_token[link[i]] + ">&" + " pointer, std::size_t& index){");
+      res.push_back(std::string() + "void delete_component<" + namespace_name + "::" + struct_token[link[i]] + ">(" + "std::unique_ptr<" + namespace_name + "::" + struct_token[link[i]] + ">&" + " pointer, std::size_t& index){");
       previous_struct = struct_token[link[i]];
     }
     // pointer->x[index] = pointer->x[pointer->x.size() - 1];
@@ -127,13 +127,14 @@ std::vector<std::string> cpp_make_deletion(std::vector<std::string> struct_token
     res.push_back(std::string("  ") + "pointer->" + element_token[i] + ".pop_back();");
     
   }
-  res.push_back("}");
+  res.push_back("}"); 
   res.push_back("");
-  //res.push_back("}");
+  res.push_back("}");// end of namespace
   return res;
 
 }
 
+/* DEPRICATED 
 std::vector<std::string> header_make_emplace_backs(std::vector<std::string> struct_token, std::vector<std::string> element_token, std::unordered_map<std::size_t, std::size_t> link, std::string& namespace_name) {
   std::vector<std::string> res;
   std::string previous_struct = "";
@@ -190,8 +191,15 @@ std::vector<std::string> header_make_deletion(std::vector<std::string> struct_to
   return res;
 
 }
+*/
 
-int main() {
+int main(int argc, char* argv[]) {
+  bool output = true;
+  if (argc >= 2){
+    std::string cmd = argv[1];
+    if (cmd == "-nooutput") output = false;
+    std::cout << output << "\n";
+  }
   const std::string START_PARSE = "##-START_PARSE-##";
   const std::string STOP_PARSE = "##-STOP_PARSE-##";
   
@@ -240,22 +248,23 @@ int main() {
    
   }
   
-  std::vector<std::string> create_header = header_make_emplace_backs(struct_token, element_token, token_link, namespace_token[0]);
-  std::vector<std::string> delete_header = header_make_deletion(struct_token, element_token, token_link, namespace_token[0]);
+  std::vector<std::string> create_header = make_emplace_backs(struct_token, element_token, token_link, namespace_token[0]);
+  std::vector<std::string> delete_header = make_deletion(struct_token, element_token, token_link, namespace_token[0]);
 
-  std::vector<std::string> create_cpp = cpp_make_emplace_backs(struct_token, element_token, token_link, namespace_token[0]);
-  std::vector<std::string> delete_cpp = cpp_make_deletion(struct_token, element_token, token_link, namespace_token[0]);
+  //std::vector<std::string> create_cpp = cpp_make_emplace_backs(struct_token, element_token, token_link, namespace_token[0]);
+  //std::vector<std::string> delete_cpp = cpp_make_deletion(struct_token, element_token, token_link, namespace_token[0]);
+  std::ofstream output_file_creation_header;
+  std::ofstream output_file_deletion_header;
   
-  std::ofstream output_file_creation_header("Dependencies/Custom_ECS/generated_components_create.hpp");
-  std::ofstream output_file_deletion_header("Dependencies/Custom_ECS/generated_components_delete.hpp");
-  std::ofstream output_file_creation_cpp("Dependencies/Custom_ECS/generated_components_create.cpp");
-  std::ofstream output_file_deletion_cpp("Dependencies/Custom_ECS/generated_components_delete.cpp");
-
+  if (output){
+    output_file_creation_header.open("Dependencies/Custom_ECS/generated_components_create.hpp");
+    output_file_deletion_header.open("Dependencies/Custom_ECS/generated_components_delete.hpp");
+  }
 
   std::cout << "============== Starting Creation header ==============\n";
 
   for (int i = 0; i < create_header.size(); i++) {
-    output_file_creation_header << create_header[i] << '\n';
+    if (output) output_file_creation_header << create_header[i] << '\n';
     std::cout << create_header[i] << '\n';
   }
 
@@ -263,28 +272,16 @@ int main() {
   std::cout << "============== Starting Deletion header ==============\n\n";
 
   for (int i = 0; i < delete_header.size(); i++) {
-    output_file_deletion_header << delete_header[i] << '\n';
+    if (output) output_file_deletion_header << delete_header[i] << '\n';
     std::cout << delete_header[i] << '\n';
   }
 
   std::cout << "============== Deletion header done ==============\n\n\n";
-  std::cout << "============== Starting Creation cpp =============\n";
-
-  for (int i = 0; i < create_cpp.size(); i++) {
-    output_file_creation_cpp << create_cpp[i] << '\n';
-    std::cout << create_cpp[i] << '\n';
-  }
-
-  std::cout << "============== Creation cpp done ==============\n\n\n";
-  std::cout << "============== Starting Deletion cpp ==============\n\n";
-
-  for (int i = 0; i < delete_cpp.size(); i++) {
-    output_file_deletion_cpp << delete_cpp[i] << '\n';
-    std::cout << delete_cpp[i] << '\n';
-  }
-
-
-
+  
   std::cout << "Preprocessing Completed\n";
+  if (output) {
+    output_file_creation_header.close();
+    output_file_deletion_header.close();
+  }
   return 0;
 }
