@@ -362,6 +362,7 @@ namespace mygame {
     //assert(size > 0 && "When grouping, size cannot be zero");
     assert(entities.size() != 0 && "entity array cannot be empty");
     
+    ecs_access(comp::physics, entities[0], speed) = 2;
     ecs_access(comp::rectangle, entities[0], width) = cell_width;
     ecs_access(comp::rectangle, entities[0], height) = cell_height;
     std::size_t entities_size = entities.size();
@@ -407,7 +408,6 @@ namespace mygame {
   // hot function call (more than 60 times per second)
   inline void move_snake(const std::vector<entity>& snake, const std::vector<entity> followup_buffer) {
     usize = snake.size();
-    mygame::take_movement_input(snake[0]);
     if (ecs_access(comp::physics, snake[0], direction) == direction_right) {
       ecs_access(comp::position, snake[0], x) += cell_width;
       for (ui = 1; ui < usize; ui++) {
@@ -542,17 +542,29 @@ int main() {
   game_window.setFramerateLimit(60);
   //ecs_access(comp::physics, snake[0], direction) = mygame::direction_right;
   
+  ecs_access(comp::physics, snake[0], speed) = 10;
+
+  float move_interval = 1.f / ecs_access(comp::physics, snake[0], speed);
+  float accumulator = 0.f;
+  sf::Clock clock;
+  float dt = 0.f;
   // game loop
   while (game_window.isOpen()) {
+    dt = clock.restart().asSeconds();
+    accumulator += dt;
 
     sf::Event event;
     while (game_window.pollEvent(event)) {
       if (event.type == sf::Event::Closed) game_window.close();
     }
     
-    
-    mygame::move_snake(snake, followup_buffer);
-    mygame::warp_snake(snake[0], window_width, window_height);
+    move_interval = 1.f / ecs_access(comp::physics, snake[0], speed);
+    mygame::take_movement_input(snake[0]);
+    while (accumulator >= move_interval) {
+      mygame::move_snake(snake, followup_buffer);
+      mygame::warp_snake(snake[0], window_width, window_height);
+      accumulator -= move_interval;
+    }
     mygame::update_snake_vertices(snake);
 
     mygame::update_followup(snake, followup_buffer);
