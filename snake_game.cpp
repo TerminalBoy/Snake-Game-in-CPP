@@ -388,6 +388,21 @@ namespace mygame {
       ecs_access(comp::physics, id, direction) = mygame::direction_right;
   }
 
+  void warp_snake(const entity& id, const std::uint32_t& window_width, const std::uint32_t& window_height) {
+    if (ecs_access(comp::position, id, x) > static_cast<float>(window_width) - ecs_access(comp::rectangle, id, width))
+      ecs_access(comp::position, id, x) = 0;
+
+    else if (ecs_access(comp::position, id, x) < 0)
+      ecs_access(comp::position, id, x) = static_cast<float>(window_width) - ecs_access(comp::rectangle, id, width);
+
+    else if (ecs_access(comp::position, id, y) > static_cast<float>(window_height) - ecs_access(comp::rectangle, id, height))
+      ecs_access(comp::position, id, y) = 0;
+
+    else if (ecs_access(comp::position, id, y) < 0)
+      ecs_access(comp::position, id, y) = static_cast<float>(window_height) - ecs_access(comp::rectangle, id, height);
+  }
+
+
 
   // hot function call (more than 60 times per second)
   inline void move_snake(const std::vector<entity>& snake, const std::vector<entity> followup_buffer) {
@@ -421,7 +436,7 @@ namespace mygame {
         ecs_access(comp::position, snake[ui], y) = ecs_access(comp::position, followup_buffer[ui - 1], y);
       }
     }
-    
+        
   } // end - move_snake()
   
   
@@ -501,14 +516,16 @@ int main() {
   
   constexpr std::uint32_t width_multiplier = 35;
   constexpr std::uint32_t height_multiplier = 25;
-  
+  constexpr std::uint32_t window_height = mygame::cell_width * height_multiplier;
+  constexpr std::uint32_t window_width = mygame::cell_height * width_multiplier;
+
   const std::string game_window_title = "Snake Game in ECS github@TerminalBoy";
 
 
   sf::RectangleShape snake_body_shape;
   sf::CircleShape snake_food_shape;
 
-  sf::RenderWindow game_window(sf::VideoMode(mygame::cell_width * width_multiplier, mygame::cell_height * height_multiplier), game_window_title);
+  sf::RenderWindow game_window(sf::VideoMode(window_width, window_height), game_window_title);
 
   entity snake_food = myecs::create_entity();
   std::vector<entity> snake; // we will allot later
@@ -522,7 +539,7 @@ int main() {
   
   mygame::update_snake_vertices(snake);
   
-  game_window.setFramerateLimit(2);
+  game_window.setFramerateLimit(60);
   //ecs_access(comp::physics, snake[0], direction) = mygame::direction_right;
   
   // game loop
@@ -535,6 +552,7 @@ int main() {
     
     
     mygame::move_snake(snake, followup_buffer);
+    mygame::warp_snake(snake[0], window_width, window_height);
     mygame::update_snake_vertices(snake);
 
     mygame::update_followup(snake, followup_buffer);
