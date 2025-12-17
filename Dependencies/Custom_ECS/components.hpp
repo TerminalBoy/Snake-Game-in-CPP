@@ -31,6 +31,11 @@ namespace comp {
     myecs::d_array<float> direction;
   };
 
+  struct speed_handler {
+    myecs::d_array<float> move_interval;
+    myecs::d_array<float> time_accumulator;
+    myecs::d_array<float> dt;
+  };
 }
 
 // ##-STOP_PARSE-##

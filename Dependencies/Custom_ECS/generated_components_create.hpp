@@ -37,5 +37,12 @@ void create_component<comp::physics>(std::unique_ptr<comp::physics>& pointer){
   pointer->speed.emplace_back();
   pointer->direction.emplace_back();
 }
+ 
+template <>
+void create_component<comp::speed_handler>(std::unique_ptr<comp::speed_handler>& pointer){
+  pointer->move_interval.emplace_back();
+  pointer->time_accumulator.emplace_back();
+  pointer->dt.emplace_back();
+}
 
 }

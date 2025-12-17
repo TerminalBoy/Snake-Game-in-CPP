@@ -18,11 +18,5 @@
     <ClCompile Include="..\..\snake_game.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Dependencies\Custom_ECS\generated_components_create.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Dependencies\Custom_ECS\generated_components_delete.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>

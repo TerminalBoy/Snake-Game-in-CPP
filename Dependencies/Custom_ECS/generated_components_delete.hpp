@@ -47,5 +47,15 @@ void delete_component<comp::physics>(std::unique_ptr<comp::physics>& pointer, st
   pointer->direction[index] = pointer->direction[pointer->direction.size() - 1];
   pointer->direction.pop_back();
 }
+ 
+template <>
+void delete_component<comp::speed_handler>(std::unique_ptr<comp::speed_handler>& pointer, std::size_t& index){
+  pointer->move_interval[index] = pointer->move_interval[pointer->move_interval.size() - 1];
+  pointer->move_interval.pop_back();
+  pointer->time_accumulator[index] = pointer->time_accumulator[pointer->time_accumulator.size() - 1];
+  pointer->time_accumulator.pop_back();
+  pointer->dt[index] = pointer->dt[pointer->dt.size() - 1];
+  pointer->dt.pop_back();
+}
 
 }
