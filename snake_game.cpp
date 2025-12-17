@@ -527,7 +527,7 @@ int main() {
 
   sf::RenderWindow game_window(sf::VideoMode(window_width, window_height), game_window_title);
 
-  entity speed_controller = myecs::create_entity();
+  //entity speed_controller = myecs::create_entity();
   entity snake_food = myecs::create_entity();
   std::vector<entity> snake; // we will allot later
   std::vector<entity> followup_buffer;
@@ -540,34 +540,35 @@ int main() {
   
   mygame::update_snake_vertices(snake);
   
-  game_window.setFramerateLimit(60);
+  game_window.setFramerateLimit(60); // comment this line to run at full load
   //ecs_access(comp::physics, snake[0], direction) = mygame::direction_right;
   
   ecs_access(comp::physics, snake[0], speed) = 10;
 
-  myecs::add_comp_to<comp::speed_handler>(speed_controller);
-  ecs_access(comp::speed_handler, speed_controller, move_interval) = 1.f / ecs_access(comp::physics, snake[0], speed);
-  ecs_access(comp::speed_handler, speed_controller, time_accumulator) = 0.f;
-  ecs_access(comp::speed_handler, speed_controller, dt) = 0.f;
   
+  float move_interval = 1.f / ecs_access(comp::physics, snake[0], speed);
+  float time_accumulator = 0.f;
+  float dt = 0.f;
+
   sf::Clock clock;
 
   // game loop
   while (game_window.isOpen()) {
-    ecs_access(comp::speed_handler, speed_controller, dt) = clock.restart().asSeconds();
-    ecs_access(comp::speed_handler, speed_controller, time_accumulator) += ecs_access(comp::speed_handler, speed_controller, dt);
+
+    dt = clock.restart().asSeconds();
+    time_accumulator += dt;
 
     sf::Event event;
     while (game_window.pollEvent(event)) {
       if (event.type == sf::Event::Closed) game_window.close();
     }
     
-    ecs_access(comp::speed_handler, speed_controller, move_interval) = 1.f / ecs_access(comp::physics, snake[0], speed);
+    move_interval = 1.f / ecs_access(comp::physics, snake[0], speed);
     mygame::take_movement_input(snake[0]);
-    while (ecs_access(comp::speed_handler, speed_controller, time_accumulator) >= ecs_access(comp::speed_handler, speed_controller, move_interval)) {
+    while (time_accumulator >= move_interval) {
       mygame::move_snake(snake, followup_buffer);
       mygame::warp_snake(snake[0], window_width, window_height);
-      ecs_access(comp::speed_handler, speed_controller, time_accumulator) -= ecs_access(comp::speed_handler, speed_controller, move_interval);
+      time_accumulator -= move_interval;
     }
     mygame::update_snake_vertices(snake);
 
