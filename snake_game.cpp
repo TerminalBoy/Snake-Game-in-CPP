@@ -283,6 +283,7 @@ namespace mygame {
   constexpr float direction_right = 1;
   constexpr float direction_up = 2;
   constexpr float direction_down = 3;
+  bool move = false;
 
   //template <typename T, typename... args>
   struct renderables{
@@ -335,7 +336,7 @@ namespace mygame {
       renderables::snake[base + 2].color = sf::Color(r, g, b);
       renderables::snake[base + 3].color = sf::Color(r, g, b);
     }
-    
+    move = true;
   }
 
   static
@@ -394,17 +395,18 @@ namespace mygame {
 
 
   inline void take_movement_input(const entity& id) {
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && ecs_access(comp::physics, id, direction) != mygame::direction_down)
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && ecs_access(comp::physics, id, direction) != mygame::direction_down && move)
       ecs_access(comp::physics, id, direction) = mygame::direction_up;
     
-    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down) && ecs_access(comp::physics, id, direction) != mygame::direction_up) 
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down) && ecs_access(comp::physics, id, direction) != mygame::direction_up && move) 
       ecs_access(comp::physics, id, direction) = mygame::direction_down;
     
-    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) && ecs_access(comp::physics, id, direction) != mygame::direction_right) 
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) && ecs_access(comp::physics, id, direction) != mygame::direction_right && move) 
       ecs_access(comp::physics, id, direction) = mygame::direction_left;
 
-    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) && ecs_access(comp::physics, id, direction) != mygame::direction_left) 
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) && ecs_access(comp::physics, id, direction) != mygame::direction_left && move) 
       ecs_access(comp::physics, id, direction) = mygame::direction_right;
+    move = false;
   }
 
   void warp_snake(const entity& id, const std::uint32_t& window_width, const std::uint32_t& window_height) {
