@@ -317,6 +317,10 @@ namespace mygame {
       const float& x = ecs_access(comp::position, entities[i], x);
       const float& y = ecs_access(comp::position, entities[i], y);
       
+      const auto r = ecs_access(comp::color, entities[i], r);
+      const auto g = ecs_access(comp::color, entities[i], g);
+      const auto b = ecs_access(comp::color, entities[i], b);
+
       renderables::snake[base + 0].position = { x, y }; // top left
 
       renderables::snake[base + 1].position = { x + width, y };// top right
@@ -326,10 +330,10 @@ namespace mygame {
       renderables::snake[base + 3].position = { x, y + height }; // bottom left
       
       // 
-      renderables::snake[base + 0].color = sf::Color::Green;
-      renderables::snake[base + 1].color = sf::Color::Green;
-      renderables::snake[base + 2].color = sf::Color::Green;
-      renderables::snake[base + 3].color = sf::Color::Green;
+      renderables::snake[base + 0].color = sf::Color(r, g, b);
+      renderables::snake[base + 1].color = sf::Color(r, g, b);
+      renderables::snake[base + 2].color = sf::Color(r, g, b);
+      renderables::snake[base + 3].color = sf::Color(r, g, b);
     }
     
   }
@@ -345,14 +349,28 @@ namespace mygame {
 
     myecs::add_comp_to<comp::position>(followup_buffer[followup_buffer.size() - 1]);
     myecs::add_comp_to<comp::position>(snake[snake.size() - 1]);
+    myecs::add_comp_to<comp::color>(snake[snake.size() - 1]);
 
     myecs::add_comp_to<comp::rectangle>(snake[snake.size() - 1]); // only the head will have rectangle info
     myecs::add_comp_to<comp::physics>(snake[snake.size() - 1]); // only the head will have physics info
     
+    // ading head color
+    ecs_access(comp::color, snake.back(), r) = 22;
+    ecs_access(comp::color, snake.back(), g) = 109;
+    ecs_access(comp::color, snake.back(), b) = 240;
+
     for (std::uint16_t i = 0; i < size - 1; i++) {
       followup_buffer.emplace_back(myecs::create_entity());
       snake.emplace_back(myecs::create_entity());
+
+      // adding data to snake
       myecs::add_comp_to<comp::position>(snake[snake.size() - 1]);
+      myecs::add_comp_to<comp::color>(snake[snake.size() - 1]);
+      // adding body color (dark blue)
+      ecs_access(comp::color, snake.back(), r) = 75;
+      ecs_access(comp::color, snake.back(), g) = 142;
+      ecs_access(comp::color, snake.back(), b) = 242;
+
       myecs::add_comp_to<comp::position>(followup_buffer[followup_buffer.size() - 1]);
     }
   }
@@ -448,7 +466,46 @@ namespace mygame {
     }
   }
 
-  
+  void gameover(sf::RenderWindow& ft_window) {
+    std::cout << "Gameover";
+    sf::Texture tex;
+    tex.loadFromFile("Assets/GameOver.png");
+    sf::Sprite spr(tex);
+
+    spr.setPosition((ft_window.getSize().x / 2.f) - (tex.getSize().x / 2.f), (ft_window.getSize().y/ 2.f) - (tex.getSize().y / 2.f));
+
+    
+    ft_window.setFramerateLimit(10);
+    while (ft_window.isOpen()) {
+
+      sf::Event event;
+      while (ft_window.pollEvent(event)) {
+        if (event.type == sf::Event::Closed) ft_window.close();
+      }
+      ft_window.draw(spr);
+      ft_window.display();
+
+      if (sf::Keyboard::isKeyPressed(sf::Keyboard::R)) {
+        //restart
+        ft_window.setFramerateLimit(60);
+        return;
+      }
+      else if (sf::Keyboard::isKeyPressed(sf::Keyboard::X)) {
+        exit(0);
+      }
+      
+    }
+  }
+
+  void snake_self_collision(const std::vector<entity>& snake, sf::RenderWindow& ft_window) {
+    usize = snake.size();
+    for (ui = 3; ui < usize; ui++) {
+      if (ecs_access(comp::position, snake[0], x) == ecs_access(comp::position, snake[ui], x) &&
+          ecs_access(comp::position, snake[0], y) == ecs_access(comp::position, snake[ui], y)
+        ) mygame::gameover(ft_window);
+      
+    }
+  }
   
 } // end of namespace mygame
 
@@ -518,6 +575,7 @@ int main() {
   constexpr std::uint32_t height_multiplier = 25;
   constexpr std::uint32_t window_height = mygame::cell_width * height_multiplier;
   constexpr std::uint32_t window_width = mygame::cell_height * width_multiplier;
+  sf::Color bg_color(238, 227, 171); // color picked from coolors.co
 
   const std::string game_window_title = "Snake Game in ECS github@TerminalBoy";
 
@@ -568,12 +626,13 @@ int main() {
     while (time_accumulator >= move_interval) {
       mygame::move_snake(snake, followup_buffer);
       mygame::warp_snake(snake[0], window_width, window_height);
+      mygame::snake_self_collision(snake, game_window);
       time_accumulator -= move_interval;
     }
     mygame::update_snake_vertices(snake);
 
     mygame::update_followup(snake, followup_buffer);
-    game_window.clear(sf::Color::Black);
+    game_window.clear(bg_color); // color picked from coolors.co
     game_window.draw(mygame::renderables::snake);
     game_window.display();
   }
