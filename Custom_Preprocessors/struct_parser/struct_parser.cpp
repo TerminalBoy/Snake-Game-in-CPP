@@ -112,14 +112,14 @@ std::vector<std::string> make_deletion(std::vector<std::string> struct_token, st
   res.push_back("namespace myecs {"); // to the commit reader CHANGE: start of namespace
   res.push_back("");
   res.push_back("template <typename component>");
-  res.push_back("void delete_component(std::unique_ptr<component>& pointer, std::size_t& index) {}// can handle exceptions");
+  res.push_back("void delete_component(std::unique_ptr<component>& pointer, const std::size_t& index) {}// can handle exceptions");
 
   for (int i = 0; i < element_token.size(); i++) {
     if (previous_struct != struct_token[link[i]]) {
       if (i != 0) res.push_back("}");
       res.push_back(" ");
       res.push_back("template <>");
-      res.push_back(std::string() + "void delete_component<" + namespace_name + "::" + struct_token[link[i]] + ">(" + "std::unique_ptr<" + namespace_name + "::" + struct_token[link[i]] + ">&" + " pointer, std::size_t& index){");
+      res.push_back(std::string() + "void delete_component<" + namespace_name + "::" + struct_token[link[i]] + ">(" + "std::unique_ptr<" + namespace_name + "::" + struct_token[link[i]] + ">&" + " pointer, const std::size_t& index){");
       previous_struct = struct_token[link[i]];
     }
     // pointer->x[index] = pointer->x[pointer->x.size() - 1];

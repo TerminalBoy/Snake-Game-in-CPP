@@ -6,10 +6,10 @@
 namespace myecs {
 
 template <typename component>
-void delete_component(std::unique_ptr<component>& pointer, std::size_t& index) {}// can handle exceptions
+void delete_component(std::unique_ptr<component>& pointer, const std::size_t& index) {}// can handle exceptions
  
 template <>
-void delete_component<comp::position>(std::unique_ptr<comp::position>& pointer, std::size_t& index){
+void delete_component<comp::position>(std::unique_ptr<comp::position>& pointer, const std::size_t& index){
   pointer->x[index] = pointer->x[pointer->x.size() - 1];
   pointer->x.pop_back();
   pointer->y[index] = pointer->y[pointer->y.size() - 1];
@@ -17,7 +17,7 @@ void delete_component<comp::position>(std::unique_ptr<comp::position>& pointer, 
 }
  
 template <>
-void delete_component<comp::rectangle>(std::unique_ptr<comp::rectangle>& pointer, std::size_t& index){
+void delete_component<comp::rectangle>(std::unique_ptr<comp::rectangle>& pointer, const std::size_t& index){
   pointer->width[index] = pointer->width[pointer->width.size() - 1];
   pointer->width.pop_back();
   pointer->height[index] = pointer->height[pointer->height.size() - 1];
@@ -25,13 +25,13 @@ void delete_component<comp::rectangle>(std::unique_ptr<comp::rectangle>& pointer
 }
  
 template <>
-void delete_component<comp::circle>(std::unique_ptr<comp::circle>& pointer, std::size_t& index){
+void delete_component<comp::circle>(std::unique_ptr<comp::circle>& pointer, const std::size_t& index){
   pointer->radius[index] = pointer->radius[pointer->radius.size() - 1];
   pointer->radius.pop_back();
 }
  
 template <>
-void delete_component<comp::color>(std::unique_ptr<comp::color>& pointer, std::size_t& index){
+void delete_component<comp::color>(std::unique_ptr<comp::color>& pointer, const std::size_t& index){
   pointer->r[index] = pointer->r[pointer->r.size() - 1];
   pointer->r.pop_back();
   pointer->g[index] = pointer->g[pointer->g.size() - 1];
@@ -41,7 +41,7 @@ void delete_component<comp::color>(std::unique_ptr<comp::color>& pointer, std::s
 }
  
 template <>
-void delete_component<comp::physics>(std::unique_ptr<comp::physics>& pointer, std::size_t& index){
+void delete_component<comp::physics>(std::unique_ptr<comp::physics>& pointer, const std::size_t& index){
   pointer->speed[index] = pointer->speed[pointer->speed.size() - 1];
   pointer->speed.pop_back();
   pointer->direction[index] = pointer->direction[pointer->direction.size() - 1];
@@ -49,7 +49,7 @@ void delete_component<comp::physics>(std::unique_ptr<comp::physics>& pointer, st
 }
  
 template <>
-void delete_component<comp::speed_handler>(std::unique_ptr<comp::speed_handler>& pointer, std::size_t& index){
+void delete_component<comp::speed_handler>(std::unique_ptr<comp::speed_handler>& pointer, const std::size_t& index){
   pointer->move_interval[index] = pointer->move_interval[pointer->move_interval.size() - 1];
   pointer->move_interval.pop_back();
   pointer->time_accumulator[index] = pointer->time_accumulator[pointer->time_accumulator.size() - 1];
