@@ -18,7 +18,7 @@
 // I have tried my best too keep the project as compiler and IDE independent as i can
 
 // the include and link are as transperent as they are in perspective of project/repository root;
-
+#include <cstddef> // for std::size_t
 #include <memory>
 #include <iostream> // only  for debugging
 #include <cstdlib>  
