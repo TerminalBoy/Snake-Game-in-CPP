@@ -572,12 +572,14 @@ int main() {
   }
   */
   
+  /*
   myecs::sparse_set<std::size_t, std::string> sets;
   sets.set_link(1, "Hello");
   sets.set_link(2, "apple");
   sets.set_link(3, "car");
   sets.set_link(4, "pen");
 
+  
   std::cout << "sets[1] : " << sets.access(1) << std::endl;
   std::cout << "sets[2] : " << sets.access(2) << std::endl;
   std::cout << "sets[3] : " << sets.access(3) << std::endl;
@@ -588,8 +590,7 @@ int main() {
   for (std::size_t i = 0; i < sets.dense.size(); i++) {
     std::cout << "sets.dense[" << i << "] = " << sets.dense[i] << std::endl;
   }
-
-
+  */
 
   constexpr std::uint32_t width_multiplier = 35;
   constexpr std::uint32_t height_multiplier = 25;

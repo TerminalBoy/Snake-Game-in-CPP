@@ -39,8 +39,12 @@ namespace myecs {
 
     }
 
-    void set_link(const number_key& key, const link& data) {
+    void resize(const std::size_t& target) {
+     
+    }
 
+    void set_link(const number_key& key, const link& data) {
+      assert((key >= sparse.size() || sparse[key] == INVALID_INDEX) && "Key is already linked somewhere");
       dense.emplace_back(data);
 
       sparse.resize(key + 1, INVALID_INDEX);
@@ -82,7 +86,18 @@ namespace myecs {
       assert(sparse[key] != INVALID_INDEX && "Data does not exist for the provided key");
       return dense[sparse[key]];
     }
-  
+    
+    // inclusive range
+    void fill_in_range(const number_key& low, const number_key& high, const link& data) { 
+      assert(low <= high && "Start of range cannot be higher than the end of range");
+      //assert(low < sparse.size() && "Start index of range is out of bounds of sparse");
+      //assert(high < sparse.size() && "End index of range is out of bounds of sparse");
+      for (number_key i = low; i <= high; i++) {
+        set_link(i, data);
+      }
+    }
+
+
   };
 
 }
