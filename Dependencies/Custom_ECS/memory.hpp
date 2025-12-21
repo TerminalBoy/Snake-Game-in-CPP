@@ -43,11 +43,14 @@ namespace myecs {
      
     }
 
-    void set_link(const number_key& key, const link& data) {
+    void set_link(const number_key& key, const link& data = key) {
       assert((key >= sparse.size() || sparse[key] == INVALID_INDEX) && "Key is already linked somewhere");
       dense.emplace_back(data);
 
+      if (key >= sparse.size())
       sparse.resize(key + 1, INVALID_INDEX);
+
+      if (dense.size() > reverse_sparse.size())
       reverse_sparse.resize(dense.size(), INVALID_KEY);
 
       sparse[key] = dense.size() - 1;
@@ -55,6 +58,8 @@ namespace myecs {
     }
 
     void remove(const number_key& key) {
+      std::cout << "from memory.hpp, sparse_set::sparse,size() : " << sparse.size() << std::endl;
+      std::cout << "from memory.hpp, sparse_set::remove() key : " << key << std::endl;
       assert(key < sparse.size() && "Key out of bounds of sparse");
       assert(sparse[key] != INVALID_INDEX && "Data does not exist for the provided key");
 
