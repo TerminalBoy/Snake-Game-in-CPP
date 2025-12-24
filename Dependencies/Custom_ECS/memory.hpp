@@ -23,30 +23,47 @@ namespace numeric_type{
 namespace create_strong_scalar {
   template <typename target_type, typename type_tag>
   struct type {
-    static_assert(std::is_scalar<target_type>, "Please use strong_nonscalar::type<T1, T2> for non scalar types");
+    static_assert(std::is_scalar<target_type>::value, "Please use strong_nonscalar::type<T1, T2> for non scalar types");
 
   private:
     target_type value;
 
   public:
-    explicit constexpr type(target_type data) : value(data) {}
+    explicit constexpr type(target_type data) noexcept
+      : value(data) {}
 
-    constexpr const target_type& get_readonly() const noexcept {
+    inline constexpr const target_type& get() const noexcept {
       return value;
     }
 
-    target_type& get_readwrite(){
-      return value;
-    }
-
-    void set(target_type data) {
+    inline constexpr void set(target_type data) noexcept{
       value = data;
     }
 
-    void operator =( target_type other) {
-      value = other;
-    }
+    type& operator = (const type&) = default;
+    type& operator = (type&&) = default;
   };
+
+  template <typename target_type, typename type_tag>
+  constexpr bool operator > (const type<target_type, type_tag>& left, const type<target_type, type_tag>& right) noexcept {
+    return left.get() > right.get();
+  }
+
+  template <typename target_type, typename type_tag>
+  constexpr bool operator < (const type<target_type, type_tag>& left, const type<target_type, type_tag>& right) noexcept {
+    return left.get() < right.get();
+  }
+
+  template <typename target_type, typename type_tag>
+  constexpr bool operator == (const type<target_type, type_tag>& left, const type<target_type, type_tag>& right) noexcept {
+    return left.get() == right.get();
+  }
+  
+  template <typename target_type, typename type_tag>
+  constexpr bool operator != (const type<target_type, type_tag>& left, const type<target_type, type_tag>& right) noexcept {
+    return left.get() != right.get();
+  }
+
 }
 
 
