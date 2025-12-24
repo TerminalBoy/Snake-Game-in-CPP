@@ -7,17 +7,17 @@
 
 namespace comp {
   struct position {
-    myecs::d_array<float> x;
-    myecs::d_array<float> y;
+    myecs::d_array<component::type::PosPix_x> x;
+    myecs::d_array<component::type::PosPix_y> y;
   };
 
   struct rectangle {
-    myecs::d_array<float> width;
-    myecs::d_array<float> height;
+    myecs::d_array<component::type::WidthPix> width;
+    myecs::d_array<component::type::HeightPix> height;
   };
 
   struct circle {
-    myecs::d_array<float> radius;
+    myecs::d_array<component::type::RadiusPix> radius;
   };
 
   struct color {
@@ -27,8 +27,8 @@ namespace comp {
   };
 
   struct physics {
-    myecs::d_array<float> speed;
-    myecs::d_array<float> direction;
+    myecs::d_array<component::type::Speed> speed;
+    myecs::d_array<component::type::Direction> direction;
   };
 
   struct speed_handler {

@@ -4,6 +4,8 @@
 #include <vector>
 #include <unordered_map>
 #include <limits>
+#include <cstdint>
+#include <type_traits> // the standard one
 #include "../compile_time_utils/type_traits.hpp" // custom one
 
 // only a temp solution until i create my own dynamic array and the other memory utils
@@ -12,6 +14,73 @@
 
 using entity = std::size_t;
 
+namespace numeric_type{
+  using i32 = std::int32_t;
+  using i16 = std::int16_t;
+  using i8 = std::int8_t;
+}
+
+namespace create_strong_scalar {
+  template <typename target_type, typename type_tag>
+  struct type {
+    static_assert(std::is_scalar<target_type>, "Please use strong_nonscalar::type<T1, T2> for non scalar types");
+
+  private:
+    target_type value;
+
+  public:
+    explicit constexpr type(target_type data) : value(data) {}
+
+    constexpr const target_type& get_readonly() const noexcept {
+      return value;
+    }
+
+    target_type& get_readwrite(){
+      return value;
+    }
+
+    void set(target_type data) {
+      value = data;
+    }
+
+    void operator =( target_type other) {
+      value = other;
+    }
+  };
+}
+
+
+// strong immutable types for critical gameplay components, (prevents hard to debug implicit mutations and bugs)
+namespace component {
+  
+  namespace type_tag { // type tags for strong type creation
+    struct PosPix_x;
+    struct PosPix_y;
+
+    struct WidthPix;
+    struct HeightPix;
+
+    struct RadiusPix;
+
+    struct Speed;
+    struct Direction;
+  }
+  
+  namespace type {
+
+    using PosPix_x = create_strong_scalar::type<numeric_type::i32, type_tag::PosPix_x>;
+    using PosPix_y = create_strong_scalar::type<numeric_type::i32, type_tag::PosPix_y>;
+
+    using WidthPix = create_strong_scalar::type<numeric_type::i32, type_tag::WidthPix>;
+    using HeightPix = create_strong_scalar::type<numeric_type::i32, type_tag::HeightPix>;
+
+    using RadiusPix = create_strong_scalar::type<numeric_type::i32, type_tag::RadiusPix>;
+
+    using Speed = create_strong_scalar::type<numeric_type::i32, type_tag::Speed>;
+    using Direction = create_strong_scalar::type<float, type_tag::Direction>;
+
+  }
+}
 
 namespace myecs {
 
@@ -70,18 +139,22 @@ namespace myecs {
       number_key key_at_dense_last_index_bd = reverse_sparse[dense_last_index_bd]; //_bd = before deletion
 
       if (dense_remove_index != dense_last_index_bd) {
-        dense[dense_remove_index] = dense.back(); // swap with last dense index
-        dense.pop_back(); // remove the last index
+        
         sparse[key] = INVALID_INDEX;
-        reverse_sparse[dense_last_index_bd] = INVALID_KEY; // as the last dense index bd has popped, it points to garbage (invalid key)
+        reverse_sparse[dense_last_index_bd] = INVALID_KEY; // as the last dense index bd has to be popped, it points to garbage (invalid key)
 
         sparse[key_at_dense_last_index_bd] = dense_remove_index;
         reverse_sparse[dense_remove_index] = key_at_dense_last_index_bd;
+        
+        dense[dense_remove_index] = dense.back(); // swap with last dense index
+        dense.pop_back(); // remove the last index
+      
       }
       else if (dense_remove_index == dense_last_index_bd) {
-        dense.pop_back(); // remove the last index
+        
         sparse[key] = INVALID_INDEX;
         reverse_sparse[dense_last_index_bd] = INVALID_KEY;
+        dense.pop_back(); // remove the last index
       }
 
     }
