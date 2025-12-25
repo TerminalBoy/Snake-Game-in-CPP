@@ -29,19 +29,25 @@ namespace create_strong_scalar {
     target_type value;
 
   public:
+
+    constexpr type() noexcept = default;
+    constexpr type(const type&) = default;
+    constexpr type(type&&) = default;
+
     explicit constexpr type(target_type data) noexcept
       : value(data) {}
 
-    inline constexpr const target_type& get() const noexcept {
+    constexpr target_type get() const noexcept {
       return value;
     }
 
-    inline constexpr void set(target_type data) noexcept{
+    constexpr void set(target_type data) noexcept{
       value = data;
     }
 
-    type& operator = (const type&) = default;
-    type& operator = (type&&) = default;
+    type& operator = (const type& data) = default;
+    type& operator = (type&& data) = default;
+
   };
 
   template <typename target_type, typename type_tag>
@@ -85,15 +91,15 @@ namespace component {
   
   namespace type {
 
-    using PosPix_x = create_strong_scalar::type<numeric_type::i32, type_tag::PosPix_x>;
-    using PosPix_y = create_strong_scalar::type<numeric_type::i32, type_tag::PosPix_y>;
+    using PosPix_x = create_strong_scalar::type<std::int32_t, type_tag::PosPix_x>;
+    using PosPix_y = create_strong_scalar::type<std::int32_t, type_tag::PosPix_y>;
 
-    using WidthPix = create_strong_scalar::type<numeric_type::i32, type_tag::WidthPix>;
-    using HeightPix = create_strong_scalar::type<numeric_type::i32, type_tag::HeightPix>;
+    using WidthPix = create_strong_scalar::type<std::int32_t, type_tag::WidthPix>;
+    using HeightPix = create_strong_scalar::type<std::int32_t, type_tag::HeightPix>;
 
-    using RadiusPix = create_strong_scalar::type<numeric_type::i32, type_tag::RadiusPix>;
+    using RadiusPix = create_strong_scalar::type<std::int32_t, type_tag::RadiusPix>;
 
-    using Speed = create_strong_scalar::type<numeric_type::i32, type_tag::Speed>;
+    using Speed = create_strong_scalar::type<float, type_tag::Speed>;
     using Direction = create_strong_scalar::type<float, type_tag::Direction>;
 
   }

@@ -277,12 +277,14 @@ namespace mygame {
   std::size_t ui = 0; // universal declarations for hot calls, avoids branch prediction
   std::size_t usize = 0; 
 
-  constexpr std::uint32_t cell_width = 20;
-  constexpr std::uint32_t cell_height = 20;
-  constexpr float direction_left = 0;
-  constexpr float direction_right = 1;
-  constexpr float direction_up = 2;
-  constexpr float direction_down = 3;
+  constexpr component::type::WidthPix cell_width{ 20 };
+  constexpr component::type::HeightPix cell_height{ 20 };
+
+  constexpr component::type::Direction direction_left{ 0 };
+  constexpr component::type::Direction direction_right{ 1 };
+  constexpr component::type::Direction direction_up{ 2 };
+  constexpr component::type::Direction direction_down{ 3 };
+
   bool move = false;
   bool food_eaten = false;
 
@@ -293,7 +295,7 @@ namespace mygame {
   };
 
   static
-    void set_snake_direction(const entity& snake_head, const float& snake_direction) {
+    void set_snake_direction(const entity& snake_head, const component::type::Direction& snake_direction) {
     ecs_access(comp::physics, snake_head, direction) = snake_direction;
   }
 
@@ -308,29 +310,33 @@ namespace mygame {
     std::size_t base = 0;
     std::size_t i = 0;
 
-    const float& width = ecs_access(comp::rectangle, entities[0], width);
-    const float& height = ecs_access(comp::rectangle, entities[0], height);
+    const std::int32_t width = ecs_access(comp::rectangle, entities[0], width).get();
+    const std::int32_t height = ecs_access(comp::rectangle, entities[0], height).get();;
 
    
     for (i = 0; i < entities_size; i++) {
     
       base = i * 4;
 
-      const float& x = ecs_access(comp::position, entities[i], x);
-      const float& y = ecs_access(comp::position, entities[i], y);
+      const std::int32_t x = ecs_access(comp::position, entities[i], x).get();
+      const std::int32_t y = ecs_access(comp::position, entities[i], y).get();
       
       const auto r = ecs_access(comp::color, entities[i], r);
       const auto g = ecs_access(comp::color, entities[i], g);
       const auto b = ecs_access(comp::color, entities[i], b);
 
-      renderables::snake[base + 0].position = { x, y }; // top left
+      renderables::snake[base + 0].position.x = x;          // top left
+      renderables::snake[base + 0].position.y = y;          // top left
 
-      renderables::snake[base + 1].position = { x + width, y };// top right
+      renderables::snake[base + 1].position.x = x + width;  // top right
+      renderables::snake[base + 1].position.y = y;          // top right
 
-      renderables::snake[base + 2].position = { x + width, y + height }; // bottom right
+      renderables::snake[base + 2].position.x = x + width;  // bottom right
+      renderables::snake[base + 2].position.y = y + height; // bottom right
 
-      renderables::snake[base + 3].position = { x, y + height }; // bottom left
-      
+      renderables::snake[base + 3].position.x = x;          // bottom left
+      renderables::snake[base + 3].position.y = y + height; // bottom left
+
       // 
       renderables::snake[base + 0].color = sf::Color(r, g, b);
       renderables::snake[base + 1].color = sf::Color(r, g, b);
@@ -341,7 +347,7 @@ namespace mygame {
   }
 
   static
-  void make_snake(std::vector<entity>& snake, std::vector<entity>& followup_buffer, const std::uint16_t& size) {
+  void make_snake(std::vector<entity>& snake, std::vector<entity>& followup_buffer, const std::int32_t& size) {
     assert(size != 0 && "Poor snake, you didnt give it a size and also took his head | size cannot be 0");
     assert(snake.size() == 0 && "Please dont destroy another snake to create your own | snake array should be empty in order to create entities");
     assert(followup_buffer.size() == 0 && "Followup buffer should be empty");
@@ -378,19 +384,19 @@ namespace mygame {
   }
   
   static
-  void init_snake(std::vector<entity>& entities, const std::uint32_t& cell_width, const std::uint32_t& cell_height) {
+  void init_snake(std::vector<entity>& entities, const component::type::WidthPix& cell_width, const component::type::HeightPix& cell_height) {
     //assert(size > 0 && "When grouping, size cannot be zero");
     assert(entities.size() != 0 && "entity array cannot be empty");
     
-    ecs_access(comp::physics, entities[0], speed) = 2;
+    ecs_access(comp::physics, entities[0], speed).set(2.f);
     ecs_access(comp::rectangle, entities[0], width) = cell_width;
     ecs_access(comp::rectangle, entities[0], height) = cell_height;
-    std::size_t entities_size = entities.size();
-    std::size_t i; // avoid branch guessing
+    std::int32_t entities_size = static_cast<std::int32_t>(entities.size());
+    std::int32_t i; // calculations stay within in signed types
     
     for (i = 0; i < entities_size; i++) {
-      ecs_access(comp::position, entities[i], x) = static_cast<std::size_t>(cell_width) * ((entities_size - i) - 1);
-      ecs_access(comp::position, entities[i], y) = 0;
+      ecs_access(comp::position, entities[i], x).set(cell_width.get() * ((entities_size - i) - 1));
+      ecs_access(comp::position, entities[i], y).set(0);
     } 
   }
 
@@ -399,29 +405,32 @@ namespace mygame {
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && ecs_access(comp::physics, id, direction) != mygame::direction_down && move)
       ecs_access(comp::physics, id, direction) = mygame::direction_up;
     
-    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down) && ecs_access(comp::physics, id, direction) != mygame::direction_up && move) 
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down) && ecs_access(comp::physics, id, direction) != mygame::direction_up && move)
       ecs_access(comp::physics, id, direction) = mygame::direction_down;
     
-    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) && ecs_access(comp::physics, id, direction) != mygame::direction_right && move) 
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) && ecs_access(comp::physics, id, direction) != mygame::direction_right && move)
       ecs_access(comp::physics, id, direction) = mygame::direction_left;
 
-    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) && ecs_access(comp::physics, id, direction) != mygame::direction_left && move) 
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) && ecs_access(comp::physics, id, direction) != mygame::direction_left && move)
       ecs_access(comp::physics, id, direction) = mygame::direction_right;
     move = false;
   }
 
-  void warp_snake(const entity& id, const std::uint32_t& window_width, const std::uint32_t& window_height) {
-    if (ecs_access(comp::position, id, x) > static_cast<float>(window_width) - ecs_access(comp::rectangle, id, width))
-      ecs_access(comp::position, id, x) = 0;
+  void warp_snake(const entity& snake_head, const component::type::WidthPix& window_width, const component::type::HeightPix& window_height) {
+    if (ecs_access(comp::position, snake_head, x).get() > window_width.get() - ecs_access(comp::rectangle, snake_head, width).get())
+        ecs_access(comp::position, snake_head, x).set(0);
 
-    else if (ecs_access(comp::position, id, x) < 0)
-      ecs_access(comp::position, id, x) = static_cast<float>(window_width) - ecs_access(comp::rectangle, id, width);
+    else
+    if (ecs_access(comp::position, snake_head, x).get() < 0)
+        ecs_access(comp::position, snake_head, x).set(window_width.get() - ecs_access(comp::rectangle, snake_head, width).get());
 
-    else if (ecs_access(comp::position, id, y) > static_cast<float>(window_height) - ecs_access(comp::rectangle, id, height))
-      ecs_access(comp::position, id, y) = 0;
+    else
+    if (ecs_access(comp::position, snake_head, y).get() > window_height.get() - ecs_access(comp::rectangle, snake_head, height).get())
+        ecs_access(comp::position, snake_head, y).set(0);
 
-    else if (ecs_access(comp::position, id, y) < 0)
-      ecs_access(comp::position, id, y) = static_cast<float>(window_height) - ecs_access(comp::rectangle, id, height);
+    else
+    if (ecs_access(comp::position, snake_head, y).get() < 0)
+        ecs_access(comp::position, snake_head, y).set(window_height.get() - ecs_access(comp::rectangle, snake_head, height).get());
   }
 
 
@@ -430,28 +439,28 @@ namespace mygame {
   inline void move_snake(const std::vector<entity>& snake, const std::vector<entity> followup_buffer) {
     usize = snake.size();
     if (ecs_access(comp::physics, snake[0], direction) == direction_right) {
-      ecs_access(comp::position, snake[0], x) += cell_width;
+      ecs_access(comp::position, snake[0], x).set(ecs_access(comp::position, snake[0], x).get() + cell_width.get());
       for (ui = 1; ui < usize; ui++) {
         ecs_access(comp::position, snake[ui], x) = ecs_access(comp::position, followup_buffer[ui - 1], x);
         ecs_access(comp::position, snake[ui], y) = ecs_access(comp::position, followup_buffer[ui - 1], y);
       }
     
     } else if (ecs_access(comp::physics, snake[0], direction) == direction_left) {
-      ecs_access(comp::position, snake[0], x) -= cell_width;
+      ecs_access(comp::position, snake[0], x).set(ecs_access(comp::position, snake[0], x).get() - cell_width.get());
       for (ui = 1; ui < usize; ui++) {
         ecs_access(comp::position, snake[ui], x) = ecs_access(comp::position, followup_buffer[ui - 1], x);
         ecs_access(comp::position, snake[ui], y) = ecs_access(comp::position, followup_buffer[ui - 1], y);
       }
     
     } else if (ecs_access(comp::physics, snake[0], direction) == direction_up){
-      ecs_access(comp::position, snake[0], y) -= cell_height;
+      ecs_access(comp::position, snake[0], y).set(ecs_access(comp::position, snake[0], y).get() - cell_height.get());
       for (ui = 1; ui < usize; ui++) {
         ecs_access(comp::position, snake[ui], x) = ecs_access(comp::position, followup_buffer[ui - 1], x);
         ecs_access(comp::position, snake[ui], y) = ecs_access(comp::position, followup_buffer[ui - 1], y);
       }
   
     } else if (ecs_access(comp::physics, snake[0], direction) == direction_down){
-      ecs_access(comp::position, snake[0], y) += cell_height;
+      ecs_access(comp::position, snake[0], y).set(ecs_access(comp::position, snake[0], y).get() + cell_height.get());
       for (ui = 1; ui < usize; ui++) {
         ecs_access(comp::position, snake[ui], x) = ecs_access(comp::position, followup_buffer[ui - 1], x);
         ecs_access(comp::position, snake[ui], y) = ecs_access(comp::position, followup_buffer[ui - 1], y);
@@ -520,6 +529,11 @@ namespace mygame {
       sset.set_link(i, i); // getting all the cells
     }
 
+    for (std::size_t i = 0; i < product; i++) {
+      std::cout << "Data at " << i << " : " << sset.access(i) << std::endl; // getting all the cells
+    }
+
+  
     std::cout << "sparse.size() = " << sset.sparse.size() << std::endl;
 
     // here we are freeing (deleting the occupied) the cells according to the occoupying of snake body (all snake entities)
@@ -531,10 +545,10 @@ namespace mygame {
       //std::cout << "\nsnake[i].x : " << ecs_access(comp::position, snake[i], x) / mygame::cell_width << std::endl;
 
       sset.remove(
-        (width_multiplier * (ecs_access(comp::position, snake[i], y) / mygame::cell_height)) +
-        (ecs_access(comp::position, snake[i], x) / mygame::cell_width)
+        (width_multiplier * (ecs_access(comp::position, snake[i], y).get() / mygame::cell_height.get()) ) +
+        (ecs_access(comp::position, snake[i], x).get() / mygame::cell_width.get())
       );
-
+    
     }
     
   }
@@ -542,36 +556,53 @@ namespace mygame {
   // hot function call
   // for when snake DOES NOT eat food, tail frees a cell
   template <typename T1, typename T2>
-  inline void update_free_cells(myecs::sparse_set<T1, T2>& sset, const entity& new_move_snake_head_entity, const entity& new_move_snake_tail_entity, const std::uint32_t& width_multiplier, const std::uint32_t& height_multiplier) {
-    // cell occupied by head, removed from the sparse set
-    //std::cout << "out bounds key test , key : " << (width_multiplier * (ecs_access(comp::position, new_move_snake_head_entity, y) / mygame::cell_height)) +
-      //(ecs_access(comp::position, new_move_snake_head_entity, x) / mygame::cell_width) << std::endl;
+  inline void update_free_cells(myecs::sparse_set<T1, T2>& sset, const entity& new_move_snake_head_entity, const entity& old_move_snake_tail_entity, const std::uint32_t& width_multiplier, const std::uint32_t& height_multiplier) {
+    std::int32_t grid_x{};
+    std::int32_t grid_y{};
+    std::int32_t key{};
     
-    sset.remove(
-      (width_multiplier * (ecs_access(comp::position, new_move_snake_head_entity, y) / mygame::cell_height)) +
-      (ecs_access(comp::position, new_move_snake_head_entity, x) / mygame::cell_width)
-    );
+    // cell occupied by head, removed from the sparse set
+
+    grid_x = ecs_access(comp::position, new_move_snake_head_entity, x).get() / mygame::cell_width.get();
+      
+    grid_y = ecs_access(comp::position, new_move_snake_head_entity, y).get() / mygame::cell_height.get();
+
+    key = (width_multiplier * grid_y) + grid_x;
+ 
+    sset.remove(key);
 
     // cell freed by the sanke's tail, added back to the sparse_set, as it was removed a move before
-    sset.set_link(
+    grid_x = ecs_access(comp::position, old_move_snake_tail_entity, x).get() / mygame::cell_width.get();
 
-      (width_multiplier * (ecs_access(comp::position, new_move_snake_tail_entity, y) / mygame::cell_height)) +
-      (ecs_access(comp::position, new_move_snake_head_entity, x) / mygame::cell_height),
+    grid_y = ecs_access(comp::position, old_move_snake_tail_entity, y).get() / mygame::cell_height.get();
 
-      (width_multiplier * (ecs_access(comp::position, new_move_snake_tail_entity, y) / mygame::cell_height)) +
-      (ecs_access(comp::position, new_move_snake_head_entity, x) / mygame::cell_width)
+    key = (width_multiplier * grid_y) + grid_x;
+    
+    std::cout << "Linking at : " << key << std::endl;
 
-    );
+    sset.set_link(key, key);
+    
+   
+    
   }
 
   // for when snake eats food, tail DOES NOT free a cell
   template <typename T1, typename T2> // _fe = food_eaten, manually mangled
   inline void update_free_cells_fe(myecs::sparse_set<T1, T2>& sset, const entity& new_move_snake_head_entity, const std::uint32_t& width_multiplier, const std::uint32_t& height_multiplier) {
     // cell occupied by head, removed from the sparse set
-    sset.remove(
-      (width_multiplier * (ecs_access(comp::position, new_move_snake_head_entity, y) / mygame::cell_height)) +
-      (ecs_access(comp::position, new_move_snake_head_entity, x) / mygame::cell_height)
-    );
+    std::int32_t grid_x{};
+    std::int32_t grid_y{};
+    std::int32_t key{};
+
+    // cell occupied by head, removed from the sparse set
+
+    grid_x = ecs_access(comp::position, new_move_snake_head_entity, x).get() / mygame::cell_width.get();
+
+    grid_y = ecs_access(comp::position, new_move_snake_head_entity, y).get() / mygame::cell_height.get();
+
+    key = (width_multiplier * grid_y) + grid_x;
+
+    sset.remove(key);
     // nothing to do for tail
   }
 
@@ -659,10 +690,14 @@ int main() {
   }
   */
 
-  constexpr std::uint32_t width_multiplier = 35;
-  constexpr std::uint32_t height_multiplier = 25;
-  constexpr std::uint32_t window_height = mygame::cell_width * height_multiplier;
-  constexpr std::uint32_t window_width = mygame::cell_height * width_multiplier;
+  
+
+  constexpr std::int32_t width_multiplier = 35;
+  constexpr std::int32_t height_multiplier = 25;
+
+  constexpr component::type::HeightPix window_height{ mygame::cell_width.get() * height_multiplier };
+  constexpr component::type::WidthPix window_width{ mygame::cell_height.get() * width_multiplier };
+  
   sf::Color bg_color(238, 227, 171); // color picked from coolors.co
 
   const std::string game_window_title = "Snake Game in ECS github@TerminalBoy";
@@ -671,7 +706,7 @@ int main() {
   //sf::RectangleShape snake_body_shape; // no need for this, we are good with vertex arrays
   //sf::CircleShape snake_food_shape;
 
-  sf::RenderWindow game_window(sf::VideoMode(window_width, window_height), game_window_title);
+  sf::RenderWindow game_window(sf::VideoMode(window_width.get(), window_height.get()), game_window_title);
 
   myecs::sparse_set<std::uint32_t, std::uint32_t> free_cells;
 
@@ -685,7 +720,7 @@ int main() {
   mygame::make_snake(snake, followup_buffer, 10); // entities of the bodies are created
   
   mygame::init_snake(snake, mygame::cell_width, mygame::cell_height);
-  mygame::init_free_cells(free_cells, snake, width_multiplier, height_multiplier);
+  //mygame::init_free_cells(free_cells, snake, width_multiplier, height_multiplier);
   
   mygame::set_snake_direction(snake[0], mygame::direction_right);
   
@@ -696,10 +731,10 @@ int main() {
   game_window.setFramerateLimit(60); // comment this line to run at full load
   //ecs_access(comp::physics, snake[0], direction) = mygame::direction_right;
   
-  ecs_access(comp::physics, snake[0], speed) = 10;
+  ecs_access(comp::physics, snake[0], speed).set(10);
 
   
-  float move_interval = 1.f / ecs_access(comp::physics, snake[0], speed);
+  float move_interval = 1.f / ecs_access(comp::physics, snake[0], speed).get();
   float time_accumulator = 0.f;
   float dt = 0.f;
 
@@ -716,12 +751,12 @@ int main() {
       if (event.type == sf::Event::Closed) game_window.close();
     }
     
-    move_interval = 1.f / ecs_access(comp::physics, snake[0], speed);
+    move_interval = 1.f / ecs_access(comp::physics, snake[0], speed).get();
     mygame::take_movement_input(snake[0]);
     while (time_accumulator >= move_interval) { // this is where snake moves
       mygame::move_snake(snake, followup_buffer);
-      mygame::update_free_cells(free_cells, snake[0], snake.back(), width_multiplier, height_multiplier);
       mygame::warp_snake(snake[0], window_width, window_height);
+      //mygame::update_free_cells(free_cells, snake[0], followup_buffer.back(), width_multiplier, height_multiplier);
       mygame::snake_self_collision(snake, game_window);
       time_accumulator -= move_interval;
     }
