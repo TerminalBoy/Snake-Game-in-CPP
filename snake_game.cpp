@@ -274,6 +274,13 @@ namespace myecs {
 
 namespace mygame {
   
+  namespace hot { // declaring in advance to avoid branch prediction in hot loops
+    std::int32_t grid_x{};
+    std::int32_t grid_y{};
+    std::int32_t key{};
+    std::size_t product{};
+  }
+
   std::size_t ui = 0; // universal declarations for hot calls, avoids branch prediction
   std::size_t usize = 0; 
 
@@ -522,33 +529,22 @@ namespace mygame {
   template <typename T1, typename T2>
   inline void init_free_cells(myecs::sparse_set<T1, T2>& sset, const std::vector<entity>& snake, const std::uint32_t& width_multiplier, const std::uint32_t& height_multiplier) {
   
-    //std::cout << "aaaaaaaaaaaaaaaaaa :" << static_cast<std::size_t>(width_multiplier) * static_cast<std::size_t>(height_multiplier);
-
-    std::size_t product = static_cast<std::size_t>(width_multiplier) * static_cast<std::size_t>(height_multiplier);
-    for (std::size_t i = 0; i < product; i++) {
+    hot::product = static_cast<std::size_t>(width_multiplier) * static_cast<std::size_t>(height_multiplier);
+    
+    for (std::size_t i = 0; i < hot::product; i++) {
       sset.set_link(i, i); // getting all the cells
     }
-
-    for (std::size_t i = 0; i < product; i++) {
-      std::cout << "Data at " << i << " : " << sset.access(i) << std::endl; // getting all the cells
-    }
-
-  
-    std::cout << "sparse.size() = " << sset.sparse.size() << std::endl;
-
+    
     // here we are freeing (deleting the occupied) the cells according to the occoupying of snake body (all snake entities)
     for (std::size_t i = 0; i < snake.size(); i++) {
       
-      //std::cout << "\nbbbbbbbbbbb: " << (width_multiplier * (ecs_access(comp::position, snake[i], y) / mygame::cell_height)) +
-        //(ecs_access(comp::position, snake[i], y) / mygame::cell_height);
+      hot::grid_x = ecs_access(comp::position, snake[i], x).get() / mygame::cell_width.get();
+      hot::grid_y = ecs_access(comp::position, snake[i], y).get() / mygame::cell_height.get();
+      
+      hot::key = (width_multiplier * hot::grid_y) + hot::grid_x;
 
-      //std::cout << "\nsnake[i].x : " << ecs_access(comp::position, snake[i], x) / mygame::cell_width << std::endl;
-
-      sset.remove(
-        (width_multiplier * (ecs_access(comp::position, snake[i], y).get() / mygame::cell_height.get()) ) +
-        (ecs_access(comp::position, snake[i], x).get() / mygame::cell_width.get())
-      );
-    
+      sset.remove(hot::key);
+ 
     }
     
   }
@@ -557,52 +553,38 @@ namespace mygame {
   // for when snake DOES NOT eat food, tail frees a cell
   template <typename T1, typename T2>
   inline void update_free_cells(myecs::sparse_set<T1, T2>& sset, const entity& new_move_snake_head_entity, const entity& old_move_snake_tail_entity, const std::uint32_t& width_multiplier, const std::uint32_t& height_multiplier) {
-    std::int32_t grid_x{};
-    std::int32_t grid_y{};
-    std::int32_t key{};
     
     // cell occupied by head, removed from the sparse set
 
-    grid_x = ecs_access(comp::position, new_move_snake_head_entity, x).get() / mygame::cell_width.get();
-      
-    grid_y = ecs_access(comp::position, new_move_snake_head_entity, y).get() / mygame::cell_height.get();
+    hot::grid_x = ecs_access(comp::position, new_move_snake_head_entity, x).get() / mygame::cell_width.get();
+    hot::grid_y = ecs_access(comp::position, new_move_snake_head_entity, y).get() / mygame::cell_height.get();
 
-    key = (width_multiplier * grid_y) + grid_x;
+    hot::key = (width_multiplier * hot::grid_y) + hot::grid_x;
  
-    sset.remove(key);
+    sset.remove(hot::key);
 
     // cell freed by the sanke's tail, added back to the sparse_set, as it was removed a move before
-    grid_x = ecs_access(comp::position, old_move_snake_tail_entity, x).get() / mygame::cell_width.get();
+    hot::grid_x = ecs_access(comp::position, old_move_snake_tail_entity, x).get() / mygame::cell_width.get();
+    hot::grid_y = ecs_access(comp::position, old_move_snake_tail_entity, y).get() / mygame::cell_height.get();
 
-    grid_y = ecs_access(comp::position, old_move_snake_tail_entity, y).get() / mygame::cell_height.get();
-
-    key = (width_multiplier * grid_y) + grid_x;
-    
-    std::cout << "Linking at : " << key << std::endl;
-
-    sset.set_link(key, key);
-    
+    hot::key = (width_multiplier * hot::grid_y) + hot::grid_x;
    
+    sset.set_link(hot::key, hot::key);
     
   }
 
   // for when snake eats food, tail DOES NOT free a cell
   template <typename T1, typename T2> // _fe = food_eaten, manually mangled
   inline void update_free_cells_fe(myecs::sparse_set<T1, T2>& sset, const entity& new_move_snake_head_entity, const std::uint32_t& width_multiplier, const std::uint32_t& height_multiplier) {
-    // cell occupied by head, removed from the sparse set
-    std::int32_t grid_x{};
-    std::int32_t grid_y{};
-    std::int32_t key{};
-
+ 
     // cell occupied by head, removed from the sparse set
 
-    grid_x = ecs_access(comp::position, new_move_snake_head_entity, x).get() / mygame::cell_width.get();
+    hot::grid_x = ecs_access(comp::position, new_move_snake_head_entity, x).get() / mygame::cell_width.get();
+    hot::grid_y = ecs_access(comp::position, new_move_snake_head_entity, y).get() / mygame::cell_height.get();
 
-    grid_y = ecs_access(comp::position, new_move_snake_head_entity, y).get() / mygame::cell_height.get();
+    hot::key = (width_multiplier * hot::grid_y) + hot::grid_x;
 
-    key = (width_multiplier * grid_y) + grid_x;
-
-    sset.remove(key);
+    sset.remove(hot::key);
     // nothing to do for tail
   }
 
@@ -720,7 +702,7 @@ int main() {
   mygame::make_snake(snake, followup_buffer, 10); // entities of the bodies are created
   
   mygame::init_snake(snake, mygame::cell_width, mygame::cell_height);
-  //mygame::init_free_cells(free_cells, snake, width_multiplier, height_multiplier);
+  mygame::init_free_cells(free_cells, snake, width_multiplier, height_multiplier);
   
   mygame::set_snake_direction(snake[0], mygame::direction_right);
   
@@ -756,8 +738,8 @@ int main() {
     while (time_accumulator >= move_interval) { // this is where snake moves
       mygame::move_snake(snake, followup_buffer);
       mygame::warp_snake(snake[0], window_width, window_height);
-      //mygame::update_free_cells(free_cells, snake[0], followup_buffer.back(), width_multiplier, height_multiplier);
       mygame::snake_self_collision(snake, game_window);
+      mygame::update_free_cells(free_cells, snake[0], followup_buffer.back(), width_multiplier, height_multiplier);
       time_accumulator -= move_interval;
     }
     mygame::update_snake_vertices(snake);
