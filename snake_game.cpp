@@ -702,7 +702,7 @@ int main() {
   mygame::make_snake(snake, followup_buffer, 10); // entities of the bodies are created
   
   mygame::init_snake(snake, mygame::cell_width, mygame::cell_height);
-  mygame::init_free_cells(free_cells, snake, width_multiplier, height_multiplier);
+  //mygame::init_free_cells(free_cells, snake, width_multiplier, height_multiplier);
   
   mygame::set_snake_direction(snake[0], mygame::direction_right);
   
@@ -739,7 +739,7 @@ int main() {
       mygame::move_snake(snake, followup_buffer);
       mygame::warp_snake(snake[0], window_width, window_height);
       mygame::snake_self_collision(snake, game_window);
-      mygame::update_free_cells(free_cells, snake[0], followup_buffer.back(), width_multiplier, height_multiplier);
+      //mygame::update_free_cells(free_cells, snake[0], followup_buffer.back(), width_multiplier, height_multiplier);
       time_accumulator -= move_interval;
     }
     mygame::update_snake_vertices(snake);
