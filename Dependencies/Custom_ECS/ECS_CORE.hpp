@@ -4,20 +4,18 @@
 #include <cstdlib>  
 #include <vector>
 #include <string>
-//#include <array> - not in use
-//#include <unordered_map> - not in use
+
 #include <limits>
 #include <cassert>
 
 #include <algorithm>
 #include <execution>
-#include <SFML/Graphics.hpp>
-//#include "Dependencies/SFML/include/SFML/Graphics.hpp" // i am sorry for this mess, but the library has hard coded the "<SFML/Graphics/**>" paths
-#include "Dependencies/Custom_ECS/memory.hpp"
-#include "Dependencies/Custom_ECS/components.hpp"
-#include "Dependencies/Custom_ECS/generated_components_create.hpp"
-#include "Dependencies/Custom_ECS/generated_components_delete.hpp"
-//#include <Custom_ECS_libs/memory.hpp>// will test later
+
+#include "memory.hpp"
+#include "components.hpp"
+#include "generated_components_create.hpp"
+#include "generated_components_delete.hpp"
+
 
 
 
@@ -54,10 +52,6 @@
 // using entity = std::size_t;
 //
 
-static entity GLOBAL_ENTITY_COUNTER = 0;
-
-constexpr std::size_t INVALID_INDEX = std::numeric_limits<std::size_t>::max();
-constexpr std::size_t MULTITHREADING_SEED = 50000; // (no. of allocations )from the threshold where multithreading should start
 // COMPONENTS :
 
 // defined in "components.hpp"
@@ -83,7 +77,11 @@ constexpr std::size_t MULTITHREADING_SEED = 50000; // (no. of allocations )from 
 
 
 namespace myecs {
+  // moved the global variables to myecs namespace
+  entity GLOBAL_ENTITY_COUNTER = 0;
 
+  constexpr std::size_t INVALID_INDEX = std::numeric_limits<std::size_t>::max();
+  constexpr std::size_t MULTITHREADING_SEED = 50000; // (no. of allocations )from the threshold where multithreading should start
 
 
   // A new way to store metadata 
@@ -97,7 +95,7 @@ namespace myecs {
     inline static std::size_t size = 0;
     inline static std::unique_ptr<component> pointer = std::make_unique<component>();
     inline static myecs::d_array<std::size_t> sparse; // sparse<component>[entity_id] = component_index 
-    //^^^^^^there is not even a need for a dense array because the components arrays are always dense by design
+                                            //^^^^^^there is not even a need for a dense array because the components arrays are always dense by design
     inline static myecs::d_array<std::size_t> reverse_sparse; // reverse_sparse<component>[component_index] = owning_entity_id;
   };
 

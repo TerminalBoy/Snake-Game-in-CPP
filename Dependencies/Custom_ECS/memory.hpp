@@ -80,6 +80,9 @@ namespace component {
     struct PosPix_x;
     struct PosPix_y;
 
+    struct PosGrid_x;
+    struct PosGrid_y;
+
     struct WidthPix;
     struct HeightPix;
 
@@ -93,6 +96,9 @@ namespace component {
 
     using PosPix_x = create_strong_scalar::type<std::int32_t, type_tag::PosPix_x>;
     using PosPix_y = create_strong_scalar::type<std::int32_t, type_tag::PosPix_y>;
+
+    using PosGrid_x = create_strong_scalar::type<std::int32_t, type_tag::PosGrid_x>;
+    using PosGrid_y = create_strong_scalar::type<std::int32_t, type_tag::PosGrid_y>;
 
     using WidthPix = create_strong_scalar::type<std::int32_t, type_tag::WidthPix>;
     using HeightPix = create_strong_scalar::type<std::int32_t, type_tag::HeightPix>;

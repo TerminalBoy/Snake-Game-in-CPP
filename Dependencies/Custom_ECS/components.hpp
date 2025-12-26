@@ -11,6 +11,11 @@ namespace comp {
     myecs::d_array<component::type::PosPix_y> y;
   };
 
+  struct position_grid {
+    myecs::d_array<component::type::PosGrid_x> x;
+    myecs::d_array<component::type::PosGrid_y> y;
+  };
+
   struct rectangle {
     myecs::d_array<component::type::WidthPix> width;
     myecs::d_array<component::type::HeightPix> height;

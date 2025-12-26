@@ -18,6 +18,14 @@ void delete_component<comp::position>(std::unique_ptr<comp::position>& pointer, 
 }
  
 template <>
+void delete_component<comp::position_grid>(std::unique_ptr<comp::position_grid>& pointer, const std::size_t& index){
+  pointer->x[index] = pointer->x[pointer->x.size() - 1];
+  pointer->x.pop_back();
+  pointer->y[index] = pointer->y[pointer->y.size() - 1];
+  pointer->y.pop_back();
+}
+ 
+template <>
 void delete_component<comp::rectangle>(std::unique_ptr<comp::rectangle>& pointer, const std::size_t& index){
   pointer->width[index] = pointer->width[pointer->width.size() - 1];
   pointer->width.pop_back();

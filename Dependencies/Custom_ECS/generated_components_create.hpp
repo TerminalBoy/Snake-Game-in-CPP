@@ -16,6 +16,12 @@ void create_component<comp::position>(std::unique_ptr<comp::position>& pointer){
 }
  
 template <>
+void create_component<comp::position_grid>(std::unique_ptr<comp::position_grid>& pointer){
+  pointer->x.emplace_back();
+  pointer->y.emplace_back();
+}
+ 
+template <>
 void create_component<comp::rectangle>(std::unique_ptr<comp::rectangle>& pointer){
   pointer->width.emplace_back();
   pointer->height.emplace_back();
