@@ -85,6 +85,9 @@ namespace component {
 
     struct WidthPix;
     struct HeightPix;
+    
+    struct WidthGrid;
+    struct HeightGrid;
 
     struct RadiusPix;
 
@@ -102,6 +105,9 @@ namespace component {
 
     using WidthPix = create_strong_scalar::type<std::int32_t, type_tag::WidthPix>;
     using HeightPix = create_strong_scalar::type<std::int32_t, type_tag::HeightPix>;
+
+    using WidthGrid = create_strong_scalar::type<std::int32_t, type_tag::WidthGrid>;
+    using HeightGrid = create_strong_scalar::type<std::int32_t, type_tag::HeightGrid>;
 
     using RadiusPix = create_strong_scalar::type<std::int32_t, type_tag::RadiusPix>;
 
