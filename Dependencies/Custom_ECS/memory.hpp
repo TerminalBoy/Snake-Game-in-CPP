@@ -134,8 +134,8 @@ namespace myecs {
     static constexpr number_key INVALID_KEY = std::numeric_limits<number_key>::max();
     static constexpr std::size_t INVALID_INDEX = std::numeric_limits<std::size_t>::max();
 
-    myecs::d_array<std::size_t> sparse; // takes key, returns dense index
-    myecs::d_array<number_key> reverse_sparse; // takes dense index, returns key
+    myecs::d_array<std::size_t> index_at_key; // takes key, returns dense index
+    myecs::d_array<number_key> key_at_index; // takes dense index, returns key
 
     myecs::d_array<link> dense; // actual tightly packed data
 
@@ -149,45 +149,46 @@ namespace myecs {
 
     void set_link(const number_key& key, const link& data) {
       assert((key >= sparse.size() || sparse[key] == INVALID_INDEX) && "Key is already linked somewhere");
-      
-      if (key >= sparse.size())
-      sparse.resize(key + 1, INVALID_INDEX);
+      assert(key_at_index.size() == dense.size() && "key_at_index[] is desynced with dense[]");
 
-      if (reverse_sparse.size() <= dense.size())
-      reverse_sparse.resize(dense.size() + 1, INVALID_KEY);
+      if (key >= index_at_key.size())
+        index_at_key.resize(key + 1, INVALID_INDEX);
 
-      sparse[key] = dense.size();
-      reverse_sparse[dense.size()] = key;
+      key_at_index.push_back(INVALID_KEY);
+
+      index_at_key[key] = dense.size();
+      key_at_index[dense.size()] = key;
 
       dense.emplace_back(data);
     }
 
     void remove(const number_key& key) {
-      assert(key < sparse.size() && "Key out of bounds of sparse");
-      assert(sparse[key] != INVALID_INDEX && "Key is deleted or is never initialized");
+      assert(key < index_at_key.size() && "Key out of bounds of sparse");
+      assert(index_at_key[key] != INVALID_INDEX && "Key is deleted or is never initialized");
 
-      std::size_t dense_remove_index = sparse[key];
-      //number_key& key_at_dense_remove_index = key;
+      std::size_t replace_index = index_at_key[key];
 
-      std::size_t dense_last_index_bd = dense.size() - 1; //_bd = before deletion
-      number_key key_at_dense_last_index_bd = reverse_sparse[dense_last_index_bd]; //_bd = before deletion
+      std::size_t last_index = dense.size() - 1; // before deletion
+      
+      number_key key_last_index = key_at_index[last_index]; // before deletion
 
-      if (dense_remove_index != dense_last_index_bd) {
+      if (replace_index != last_index) {
         
-        sparse[key] = INVALID_INDEX;
-        reverse_sparse[dense_last_index_bd] = INVALID_KEY; // as the last dense index bd has to be popped, it points to garbage (invalid key)
+        index_at_key[key] = INVALID_INDEX;
+        key_at_index.pop_back(); // as the last dense index has to be popped, it points to garbage (invalid key)
 
-        sparse[key_at_dense_last_index_bd] = dense_remove_index;
-        reverse_sparse[dense_remove_index] = key_at_dense_last_index_bd;
+        index_at_key[key_last_index] = replace_index; // last index data will be moved to the replace index so sparse[key_last_index] points to the replace_index
+        key_at_index[replace_index] = key_last_index; // last index data will be moved to the replace index so key_at_index[replace_index] points to the key_last_index
         
-        dense[dense_remove_index] = dense.back(); // swap with last dense index
+        dense[replace_index] = dense.back(); // swap with last dense index
+        
         dense.pop_back(); // remove the last index
       
       }
-      else if (dense_remove_index == dense_last_index_bd) {
-        
-        sparse[key] = INVALID_INDEX;
-        reverse_sparse[dense_last_index_bd] = INVALID_KEY;
+      else if (replace_index == last_index) {
+        index_at_key[key] = INVALID_INDEX;
+
+        key_at_index.pop_back();
         dense.pop_back(); // remove the last index
       }
 
