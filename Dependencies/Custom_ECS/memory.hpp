@@ -147,25 +147,24 @@ namespace myecs {
      
     }
 
-    void set_link(const number_key& key, const link& data = key) {
+    void set_link(const number_key& key, const link& data) {
       assert((key >= sparse.size() || sparse[key] == INVALID_INDEX) && "Key is already linked somewhere");
-      dense.emplace_back(data);
-
+      
       if (key >= sparse.size())
       sparse.resize(key + 1, INVALID_INDEX);
 
-      if (dense.size() > reverse_sparse.size())
-      reverse_sparse.resize(dense.size(), INVALID_KEY);
+      if (reverse_sparse.size() <= dense.size())
+      reverse_sparse.resize(dense.size() + 1, INVALID_KEY);
 
-      sparse[key] = dense.size() - 1;
-      reverse_sparse[dense.size() - 1] = key;
+      sparse[key] = dense.size();
+      reverse_sparse[dense.size()] = key;
+
+      dense.emplace_back(data);
     }
 
     void remove(const number_key& key) {
-      std::cout << "from memory.hpp, sparse_set::sparse,size() : " << sparse.size() << std::endl;
-      std::cout << "from memory.hpp, sparse_set::remove() key : " << key << std::endl;
       assert(key < sparse.size() && "Key out of bounds of sparse");
-      assert(sparse[key] != INVALID_INDEX && "Data does not exist for the provided key");
+      assert(sparse[key] != INVALID_INDEX && "Key is deleted or is never initialized");
 
       std::size_t dense_remove_index = sparse[key];
       //number_key& key_at_dense_remove_index = key;
@@ -193,23 +192,6 @@ namespace myecs {
       }
 
     }
-
-    link& access(const number_key& key) {
-      assert(key < sparse.size() && "Key out of bounds of sparse");
-      assert(sparse[key] != INVALID_INDEX && "Data does not exist for the provided key");
-      return dense[sparse[key]];
-    }
-    
-    // inclusive range
-    void fill_in_range(const number_key& low, const number_key& high, const link& data) { 
-      assert(low <= high && "Start of range cannot be higher than the end of range");
-      //assert(low < sparse.size() && "Start index of range is out of bounds of sparse");
-      //assert(high < sparse.size() && "End index of range is out of bounds of sparse");
-      for (number_key i = low; i <= high; i++) {
-        set_link(i, data);
-      }
-    }
-
 
   };
 
