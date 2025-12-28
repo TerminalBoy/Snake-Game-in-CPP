@@ -143,28 +143,37 @@ namespace myecs {
 
     }
 
-    void resize(const std::size_t& target) {
-     
+    bool contains(number_key key) const {
+      if (key < index_at_key.size() && index_at_key[key] != INVALID_INDEX) return true;
+      return false;
     }
 
-    void set_link(const number_key& key, const link& data) {
-      assert((key >= sparse.size() || sparse[key] == INVALID_INDEX) && "Key is already linked somewhere");
-      assert(key_at_index.size() == dense.size() && "key_at_index[] is desynced with dense[]");
+    bool validate() const {
+      assert(dense.size() == key_at_index.size() && "key_at_index[] is desynced with dense[]");
+      for (std::size_t i = 0; i < key_at_index.size(); i++) {
+        number_key key = key_at_index[i];
+        if (index_at_key[key] != i) return false;
+      }
+      return true;
+    }
 
+
+    void insert(number_key key, const link& data) {
+      assert(!contains(key) && "the provided key already exists and has data");
+      assert(validate() && "Invariant of index_at_key[key_at_index[i]] == i is broken");
+      
       if (key >= index_at_key.size())
         index_at_key.resize(key + 1, INVALID_INDEX);
 
-      key_at_index.push_back(INVALID_KEY);
-
       index_at_key[key] = dense.size();
-      key_at_index[dense.size()] = key;
 
+      key_at_index.emplace_back(key);
       dense.emplace_back(data);
     }
 
-    void remove(const number_key& key) {
-      assert(key < index_at_key.size() && "Key out of bounds of sparse");
-      assert(index_at_key[key] != INVALID_INDEX && "Key is deleted or is never initialized");
+    void erase(number_key key) {
+      assert(contains(key) && "key does not exist or is deleted");
+      assert(validate() && "Invariant of index_at_key[key_at_index[i]] == i is broken");
 
       std::size_t replace_index = index_at_key[key];
 
@@ -174,14 +183,14 @@ namespace myecs {
 
       if (replace_index != last_index) {
         
-        index_at_key[key] = INVALID_INDEX;
-        key_at_index.pop_back(); // as the last dense index has to be popped, it points to garbage (invalid key)
 
         index_at_key[key_last_index] = replace_index; // last index data will be moved to the replace index so sparse[key_last_index] points to the replace_index
         key_at_index[replace_index] = key_last_index; // last index data will be moved to the replace index so key_at_index[replace_index] points to the key_last_index
-        
+
+        index_at_key[key] = INVALID_INDEX;        
         dense[replace_index] = dense.back(); // swap with last dense index
         
+        key_at_index.pop_back(); // as the last dense index has to be popped, it points to garbage (invalid key)
         dense.pop_back(); // remove the last index
       
       }
@@ -193,6 +202,8 @@ namespace myecs {
       }
 
     }
+
+    
 
   };
 
