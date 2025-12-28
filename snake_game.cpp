@@ -25,7 +25,7 @@
 #include <vector>
 #include <string>
 //#include <array> - not in use
-//#include <unordered_map> - not in use
+#include <unordered_map> //- not in use
 #include <limits>
 #include <cassert>
 
@@ -300,7 +300,8 @@ namespace mygame {
     hot::product = static_cast<std::size_t>(grid_width.get()) * static_cast<std::size_t>(grid_height.get());
     
     for (std::size_t i = 0; i < hot::product; i++) {
-      sset.set_link(i, i); // getting all the cells
+      if (sset.contains(i)) std::cout << "Key already exists\n";
+      else sset.insert(i, i);
     }
     
     // here we are freeing (deleting the occupied) the cells according to the occoupying of snake body (all snake entities)
@@ -311,7 +312,8 @@ namespace mygame {
       
       hot::key = (grid_width.get() * hot::grid_y) + hot::grid_x;
 
-      sset.remove(hot::key);
+      if (!sset.contains(hot::key)) assert(false && "Key does not exists");
+      else sset.erase(hot::key);
  
     }
     
@@ -320,30 +322,32 @@ namespace mygame {
   // hot function call
   // for when snake DOES NOT eat food, tail frees a cell
   template <typename key, typename link>
-  inline void update_free_cells(myecs::sparse_set<key, link>& sset, const entity& new_move_snake_head_entity, const entity& old_move_snake_tail_entity, const component::type::WidthGrid& grid_width) {
+  void update_free_cells(myecs::sparse_set<key, link>& sset, const entity& new_move_snake_head_entity, const entity& old_move_snake_tail_entity, const component::type::WidthGrid& grid_width) {
     
-    // cell occupied by head, removed from the sparse set
-
-    hot::grid_x = ecs_access(comp::position, new_move_snake_head_entity, x).get() / mygame::cell_width.get();
-    hot::grid_y = ecs_access(comp::position, new_move_snake_head_entity, y).get() / mygame::cell_height.get();
-
-    hot::key = (grid_width.get() * hot::grid_y) + hot::grid_x;
- 
-    sset.remove(hot::key);
-
     // cell freed by the sanke's tail, added back to the sparse_set, as it was removed a move before
     hot::grid_x = ecs_access(comp::position, old_move_snake_tail_entity, x).get() / mygame::cell_width.get();
     hot::grid_y = ecs_access(comp::position, old_move_snake_tail_entity, y).get() / mygame::cell_height.get();
 
     hot::key = (grid_width.get() * hot::grid_y) + hot::grid_x;
-   
-    sset.set_link(hot::key, hot::key);
-    
+
+    if (sset.contains(hot::key)) assert(false && "Key already exists");
+    else sset.insert(hot::key, hot::key);
+
+    // cell occupied by head, removed from the sparse set
+
+    hot::grid_x = ecs_access(comp::position, new_move_snake_head_entity, x).get() / mygame::cell_width.get();
+    hot::grid_y = ecs_access(comp::position, new_move_snake_head_entity, y).get() / mygame::cell_height.get();
+
+    hot::key = (grid_width.get() * hot::grid_y) + hot::grid_x;
+
+    if (!sset.contains(hot::key)) assert(false && "Key does not exists");
+    else sset.erase(hot::key);
+
   }
 
   // for when snake eats food, tail DOES NOT free a cell
   template <typename key, typename link> // _fe = food_eaten, manually mangled
-  inline void update_free_cells_fe(myecs::sparse_set<key, link>& sset, const entity& new_move_snake_head_entity, const component::type::WidthGrid& grid_width) {
+  void update_free_cells_fe(myecs::sparse_set<key, link>& sset, const entity& new_move_snake_head_entity, const component::type::WidthGrid& grid_width) {
  
     // cell occupied by head, removed from the sparse set
 
@@ -352,7 +356,7 @@ namespace mygame {
 
     hot::key = (grid_width.get() * hot::grid_y) + hot::grid_x;
 
-    sset.remove(hot::key);
+    sset.erase(hot::key);
     // nothing to do for tail
   }
 
@@ -470,7 +474,7 @@ int main() {
   mygame::make_snake(snake, followup_buffer, 10); // entities of the bodies are created
   
   mygame::init_snake(snake, mygame::cell_width, mygame::cell_height);
-  //mygame::init_free_cells(free_cells, snake, grid_width, grid_height);
+  mygame::init_free_cells(free_cells, snake, grid_width, grid_height);
   
   mygame::set_snake_direction(snake[0], mygame::direction_right);
   
@@ -507,12 +511,13 @@ int main() {
       mygame::move_snake(snake, followup_buffer);
       mygame::warp_snake(snake[0], window_width, window_height);
       mygame::snake_self_collision(snake, game_window);
-      //mygame::update_free_cells(free_cells, snake[0], followup_buffer.back(), grid_width);
+      mygame::update_free_cells(free_cells, snake[0], followup_buffer.back(), grid_width);
+      mygame::update_followup(snake, followup_buffer);
       time_accumulator -= move_interval;
     }
     mygame::update_snake_vertices(snake);
 
-    mygame::update_followup(snake, followup_buffer);
+    
     game_window.clear(bg_color); // color picked from coolors.co
     game_window.draw(mygame::renderables::snake);
     game_window.display();
