@@ -19,6 +19,7 @@
 
 // the include and link are as transperent as they are in perspective of project/repository root;
 #include <cstddef> // for std::size_t
+#include <cstdint>
 #include <memory>
 #include <iostream> // only  for debugging
 #include <cstdlib>  
@@ -31,6 +32,7 @@
 
 #include <algorithm>
 #include <execution>
+#include <chrono> // for getting PRNG seed
 #include <SFML/Graphics.hpp>
 
 #include "Dependencies/Custom_ECS/memory.hpp"
@@ -38,6 +40,8 @@
 #include "Dependencies/Custom_ECS/components.hpp"
 #include "Dependencies/Custom_ECS/generated_components_create.hpp"
 #include "Dependencies/Custom_ECS/generated_components_delete.hpp"
+
+#include "Dependencies/MyGameLibs/include/random.hpp" // for xorshift32 PRNG
 
 
 namespace mygame {
@@ -47,6 +51,10 @@ namespace mygame {
     std::int32_t grid_y{};
     std::int32_t key{};
     std::size_t product{};
+    std::int32_t ran_x{};
+    std::int32_t ran_y{};
+    std::int32_t pos{};
+    
   }
 
   std::size_t ui = 0; // universal declarations for hot calls, avoids branch prediction
@@ -61,7 +69,7 @@ namespace mygame {
   constexpr component::type::Direction direction_down{ 3 };
 
   bool move = false;
-  bool food_eaten = false;
+  bool food_eaten = true;
 
   //template <typename T, typename... args>
   struct renderables{
@@ -72,6 +80,41 @@ namespace mygame {
   static
     void set_snake_direction(const entity& snake_head, const component::type::Direction& snake_direction) {
     ecs_access(comp::physics, snake_head, direction) = snake_direction;
+  }
+
+  static
+  void update_snake_food_vertices(entity snake_food) {
+
+    renderables::snake_food.setPrimitiveType(sf::Quads);
+    renderables::snake_food.resize(4);
+
+    const std::uint32_t width = ecs_access(comp::rectangle, snake_food, width).get();
+    const std::uint32_t height = ecs_access(comp::rectangle, snake_food, height).get();
+
+    const std::int32_t x = ecs_access(comp::position, snake_food, x).get();
+    const std::int32_t y = ecs_access(comp::position, snake_food, y).get();
+
+    const auto r = ecs_access(comp::color, snake_food, r);
+    const auto g = ecs_access(comp::color, snake_food, g);
+    const auto b = ecs_access(comp::color, snake_food, b);
+
+    renderables::snake_food[0].position.x = x;          // top left
+    renderables::snake_food[0].position.y = y;          // top left
+
+    renderables::snake_food[1].position.x = x + width;  // top right
+    renderables::snake_food[1].position.y = y;          // top right
+
+    renderables::snake_food[2].position.x = x + width;  // bottom right
+    renderables::snake_food[2].position.y = y + height; // bottom right
+
+    renderables::snake_food[3].position.x = x;          // bottom left
+    renderables::snake_food[3].position.y = y + height; // bottom left
+
+    renderables::snake_food[0].color = sf::Color(r, g, b);
+    renderables::snake_food[1].color = sf::Color(r, g, b);
+    renderables::snake_food[2].color = sf::Color(r, g, b);
+    renderables::snake_food[3].color = sf::Color(r, g, b);
+   
   }
 
   static
@@ -173,6 +216,20 @@ namespace mygame {
       ecs_access(comp::position, entities[i], x).set(cell_width.get() * ((entities_size - i) - 1));
       ecs_access(comp::position, entities[i], y).set(0);
     } 
+  }
+
+  void make_snake_food(entity snake_food) {
+    myecs::add_comp_to<comp::rectangle>(snake_food);
+    myecs::add_comp_to<comp::position>(snake_food);
+    myecs::add_comp_to<comp::color>(snake_food);
+  }
+
+  void init_snake_food(entity snake_food) {
+    ecs_access(comp::rectangle, snake_food, width).set(mygame::cell_width.get());
+    ecs_access(comp::rectangle, snake_food, height).set(mygame::cell_height.get());
+    ecs_access(comp::color, snake_food, r) = 200;
+    ecs_access(comp::color, snake_food, g) = 0;
+    ecs_access(comp::color, snake_food, b) = 0;
   }
 
 
@@ -360,6 +417,22 @@ namespace mygame {
     // nothing to do for tail
   }
 
+  template <typename key, typename link>
+  void randomize_snake_food_position(entity snake_food, component::type::WidthGrid grid_width, myecs::sparse_set<key, link>& free_cells){
+    if (!mygame::food_eaten) return;
+    static std::uint32_t PRNG_seed = mgl::make_seed_xorshift32();
+    std::cout << PRNG_seed << std::endl;
+    auto width = grid_width.get();
+    auto pos = mgl::xorshift32(PRNG_seed) % free_cells.dense.size();
+    link free_cell_index = free_cells.dense[pos];
+    ecs_access(comp::position, snake_food, x).set((free_cell_index % width) * cell_width.get());
+    ecs_access(comp::position, snake_food, y).set((free_cell_index / width) * cell_height.get());
+    mygame::food_eaten = false;
+  }
+
+  void test_eat_food() {
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::E)) food_eaten = true;
+  }
   
 } // end of namespace mygame
 
@@ -472,8 +545,10 @@ int main() {
   std::vector<entity> followup_buffer;
   
   mygame::make_snake(snake, followup_buffer, 10); // entities of the bodies are created
-  
+  mygame::make_snake_food(snake_food);
+
   mygame::init_snake(snake, mygame::cell_width, mygame::cell_height);
+  mygame::init_snake_food(snake_food);
   mygame::init_free_cells(free_cells, snake, grid_width, grid_height);
   
   mygame::set_snake_direction(snake[0], mygame::direction_right);
@@ -507,19 +582,25 @@ int main() {
     
     move_interval = 1.f / ecs_access(comp::physics, snake[0], speed).get();
     mygame::take_movement_input(snake[0]);
+    
     while (time_accumulator >= move_interval) { // this is where snake moves
+      mygame::test_eat_food(); // press 'E' to generate food
       mygame::move_snake(snake, followup_buffer);
       mygame::warp_snake(snake[0], window_width, window_height);
       mygame::snake_self_collision(snake, game_window);
+      mygame::randomize_snake_food_position(snake_food, grid_width, free_cells);
       mygame::update_free_cells(free_cells, snake[0], followup_buffer.back(), grid_width);
       mygame::update_followup(snake, followup_buffer);
       time_accumulator -= move_interval;
     }
-    mygame::update_snake_vertices(snake);
 
+    mygame::update_snake_vertices(snake);
+    
+    mygame::update_snake_food_vertices(snake_food);
     
     game_window.clear(bg_color); // color picked from coolors.co
     game_window.draw(mygame::renderables::snake);
+    game_window.draw(mygame::renderables::snake_food);
     game_window.display();
   }
 
