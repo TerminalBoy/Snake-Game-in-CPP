@@ -93,6 +93,8 @@ namespace component {
 
     struct Speed;
     struct Direction;
+
+    struct Size;
   }
   
   namespace type {
@@ -113,6 +115,8 @@ namespace component {
 
     using Speed = create_strong_scalar::type<float, type_tag::Speed>;
     using Direction = create_strong_scalar::type<float, type_tag::Direction>;
+
+    using Size = create_strong_scalar::type<std::int32_t, type_tag::Size>;
 
   }
 }

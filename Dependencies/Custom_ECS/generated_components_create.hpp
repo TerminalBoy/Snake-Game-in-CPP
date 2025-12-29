@@ -51,5 +51,10 @@ void create_component<comp::speed_handler>(std::unique_ptr<comp::speed_handler>&
   pointer->time_accumulator.emplace_back();
   pointer->dt.emplace_back();
 }
+ 
+template <>
+void create_component<comp::magnitude>(std::unique_ptr<comp::magnitude>& pointer){
+  pointer->size.emplace_back();
+}
 
 }

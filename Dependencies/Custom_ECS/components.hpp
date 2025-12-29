@@ -41,6 +41,10 @@ namespace comp {
     myecs::d_array<float> time_accumulator;
     myecs::d_array<float> dt;
   };
+
+  struct magnitude {
+    myecs::d_array<component::type::Size> size;
+  };
 }
 
 // ##-STOP_PARSE-##

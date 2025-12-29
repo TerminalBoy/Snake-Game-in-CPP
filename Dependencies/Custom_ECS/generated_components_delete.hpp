@@ -66,5 +66,11 @@ void delete_component<comp::speed_handler>(std::unique_ptr<comp::speed_handler>&
   pointer->dt[index] = pointer->dt[pointer->dt.size() - 1];
   pointer->dt.pop_back();
 }
+ 
+template <>
+void delete_component<comp::magnitude>(std::unique_ptr<comp::magnitude>& pointer, const std::size_t& index){
+  pointer->size[index] = pointer->size[pointer->size.size() - 1];
+  pointer->size.pop_back();
+}
 
 }

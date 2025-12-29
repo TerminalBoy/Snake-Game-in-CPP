@@ -84,7 +84,7 @@ namespace mygame {
 
   static
   void update_snake_food_vertices(entity snake_food) {
-
+ 
     renderables::snake_food.setPrimitiveType(sf::Quads);
     renderables::snake_food.resize(4);
 
@@ -120,7 +120,7 @@ namespace mygame {
   static
   void update_snake_vertices(const std::vector<entity>& entities) { 
     //std::cout << "entitiy/ snake size : " << entities.size() << std::endl;
-    std::size_t entities_size = entities.size();
+    std::size_t entities_size = ecs_access(comp::magnitude, entities[0], size).get();
     
     renderables::snake.setPrimitiveType(sf::Quads);
     renderables::snake.resize(entities_size * 4);
@@ -168,36 +168,39 @@ namespace mygame {
   void make_snake(std::vector<entity>& snake, std::vector<entity>& followup_buffer, const std::int32_t& size) {
     assert(size != 0 && "Poor snake, you didnt give it a size and also took his head | size cannot be 0");
     assert(snake.size() == 0 && "Please dont destroy another snake to create your own | snake array should be empty in order to create entities");
-    assert(followup_buffer.size() == 0 && "Followup buffer should be empty");
+    assert(followup_buffer.size() == 0 && "Followup buffer SHOULD be empty");
 
-    followup_buffer.emplace_back(myecs::create_entity());
+    followup_buffer.emplace_back(myecs::create_entity()); // head
     snake.emplace_back(myecs::create_entity()); // head
 
-    myecs::add_comp_to<comp::position>(followup_buffer[followup_buffer.size() - 1]);
-    myecs::add_comp_to<comp::position>(snake[snake.size() - 1]);
-    myecs::add_comp_to<comp::color>(snake[snake.size() - 1]);
+    myecs::add_comp_to<comp::position>(followup_buffer.back());
+    myecs::add_comp_to<comp::position>(snake.back());
+    myecs::add_comp_to<comp::color>(snake.back());
 
-    myecs::add_comp_to<comp::rectangle>(snake[snake.size() - 1]); // only the head will have rectangle info
-    myecs::add_comp_to<comp::physics>(snake[snake.size() - 1]); // only the head will have physics info
-    
-    // ading head color
+    myecs::add_comp_to<comp::rectangle>(snake.back()); // only the head will have rectangle info
+    myecs::add_comp_to<comp::physics>(snake.back()); // only the head will have physics info
+    myecs::add_comp_to<comp::magnitude>(snake.back()); // only the head will have size info
+
+    ecs_access(comp::magnitude, snake.back(), size).set(size); // assinng size to head
+
+    // adding head color
     ecs_access(comp::color, snake.back(), r) = 22;
     ecs_access(comp::color, snake.back(), g) = 109;
     ecs_access(comp::color, snake.back(), b) = 240;
 
-    for (std::uint16_t i = 0; i < size - 1; i++) {
+    for (std::int32_t i = 0; i < size - 1; i++) {
       followup_buffer.emplace_back(myecs::create_entity());
       snake.emplace_back(myecs::create_entity());
 
       // adding data to snake
-      myecs::add_comp_to<comp::position>(snake[snake.size() - 1]);
-      myecs::add_comp_to<comp::color>(snake[snake.size() - 1]);
+      myecs::add_comp_to<comp::position>(snake.back());
+      myecs::add_comp_to<comp::color>(snake.back());
       // adding body color (dark blue)
       ecs_access(comp::color, snake.back(), r) = 75;
       ecs_access(comp::color, snake.back(), g) = 142;
       ecs_access(comp::color, snake.back(), b) = 242;
 
-      myecs::add_comp_to<comp::position>(followup_buffer[followup_buffer.size() - 1]);
+      myecs::add_comp_to<comp::position>(followup_buffer.back());
     }
   }
   
@@ -209,7 +212,7 @@ namespace mygame {
     ecs_access(comp::physics, entities[0], speed).set(2.f);
     ecs_access(comp::rectangle, entities[0], width) = cell_width;
     ecs_access(comp::rectangle, entities[0], height) = cell_height;
-    std::int32_t entities_size = static_cast<std::int32_t>(entities.size());
+    std::int32_t entities_size = ecs_access(comp::magnitude, entities[0], size).get();
     std::int32_t i; // calculations stay within in signed types
     
     for (i = 0; i < entities_size; i++) {
@@ -269,7 +272,7 @@ namespace mygame {
 
   // hot function call (more than 60 times per second)
   inline void move_snake(const std::vector<entity>& snake, const std::vector<entity> followup_buffer) {
-    usize = snake.size();
+    usize = ecs_access(comp::magnitude, snake[0], size).get();
     if (ecs_access(comp::physics, snake[0], direction) == direction_right) {
       ecs_access(comp::position, snake[0], x).set(ecs_access(comp::position, snake[0], x).get() + cell_width.get());
       for (ui = 1; ui < usize; ui++) {
@@ -302,8 +305,12 @@ namespace mygame {
   } // end - move_snake()
   
   
-  inline void update_followup(const std::vector<entity>& snake, const std::vector<entity>& followup_buffer){
-    usize = snake.size();
+  inline void update_followup(const std::vector<entity>& snake, std::vector<entity>& followup_buffer){
+    usize = ecs_access(comp::magnitude, snake[0], size).get();
+    if (followup_buffer.size() == usize - 1) {
+      followup_buffer.emplace_back(myecs::create_entity());
+      myecs::add_comp_to<comp::position>(followup_buffer.back());
+    }
     for (ui = 0; ui < usize; ui++) {
       ecs_access(comp::position, followup_buffer[ui], x) = ecs_access(comp::position, snake[ui], x);
       ecs_access(comp::position, followup_buffer[ui], y) = ecs_access(comp::position, snake[ui], y);
@@ -342,7 +349,7 @@ namespace mygame {
   }
 
   void snake_self_collision(const std::vector<entity>& snake, sf::RenderWindow& ft_window) {
-    usize = snake.size();
+    usize = ecs_access(comp::magnitude, snake[0], size).get();
     for (ui = 3; ui < usize; ui++) {
       if (ecs_access(comp::position, snake[0], x) == ecs_access(comp::position, snake[ui], x) &&
           ecs_access(comp::position, snake[0], y) == ecs_access(comp::position, snake[ui], y)
@@ -362,7 +369,7 @@ namespace mygame {
     }
     
     // here we are freeing (deleting the occupied) the cells according to the occoupying of snake body (all snake entities)
-    for (std::size_t i = 0; i < snake.size(); i++) {
+    for (std::size_t i = 0; i < ecs_access(comp::magnitude, snake[0], size).get(); i++) {
       
       hot::grid_x = ecs_access(comp::position, snake[i], x).get() / mygame::cell_width.get();
       hot::grid_y = ecs_access(comp::position, snake[i], y).get() / mygame::cell_height.get();
@@ -434,6 +441,34 @@ namespace mygame {
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::E)) food_eaten = true;
   }
   
+
+  static bool is_food_eaten(entity snake_head, entity food) {
+    if (
+      ecs_access(comp::position, snake_head, x) == ecs_access(comp::position, food, x) &&
+      ecs_access(comp::position, snake_head, y) == ecs_access(comp::position, food, y)
+      ) {
+      std::cout << "\nFOOD EATEN\n";
+      return true;
+    }
+    return false;
+  }
+
+  static void increase_snake_size(std::vector<entity>& snake_array, std::vector<entity>& followup_buffer) {
+    snake_array.emplace_back(myecs::create_entity());
+    
+    myecs::add_comp_to<comp::position>(snake_array.back());
+    myecs::add_comp_to<comp::color>(snake_array.back());
+
+    ecs_access(comp::color, snake_array.back(), r) = ecs_access(comp::color, snake_array[1], r);
+    ecs_access(comp::color, snake_array.back(), g) = ecs_access(comp::color, snake_array[1], g);
+    ecs_access(comp::color, snake_array.back(), b) = ecs_access(comp::color, snake_array[1], b);
+
+    ecs_access(comp::position, snake_array.back(), x) = ecs_access(comp::position, followup_buffer.back(), x);
+    ecs_access(comp::position, snake_array.back(), y) = ecs_access(comp::position, followup_buffer.back(), y);
+    
+    ecs_access(comp::magnitude, snake_array[0], size).set(ecs_access(comp::magnitude, snake_array[0], size).get() + 1);
+  }
+
 } // end of namespace mygame
 
 
@@ -589,17 +624,28 @@ int main() {
       mygame::warp_snake(snake[0], window_width, window_height);
       mygame::snake_self_collision(snake, game_window);
       mygame::randomize_snake_food_position(snake_food, grid_width, free_cells);
-      mygame::update_free_cells(free_cells, snake[0], followup_buffer.back(), grid_width);
+      
+      if (mygame::is_food_eaten(snake[0], snake_food)) {
+        mygame::increase_snake_size(snake, followup_buffer);
+        mygame::update_free_cells_fe(free_cells, snake[0], grid_width);
+        mygame::food_eaten = true;
+      }
+      else {
+        mygame::update_free_cells(free_cells, snake[0], followup_buffer.back(), grid_width);
+      }
+
       mygame::update_followup(snake, followup_buffer);
       time_accumulator -= move_interval;
+      
+      mygame::update_snake_vertices(snake);
+      mygame::update_snake_food_vertices(snake_food);
     }
 
-    mygame::update_snake_vertices(snake);
     
-    mygame::update_snake_food_vertices(snake_food);
     
     game_window.clear(bg_color); // color picked from coolors.co
     game_window.draw(mygame::renderables::snake);
+    if (!mygame::food_eaten)
     game_window.draw(mygame::renderables::snake_food);
     game_window.display();
   }
